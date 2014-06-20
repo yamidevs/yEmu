@@ -27,7 +27,6 @@ namespace yEmu
                 sw.Stop();
             
                 Console.WriteLine("Time : {0}", sw.Elapsed);
-                Console.WriteLine("ssaaad");
 
                 while (Parse(
                     Console.ReadLine())
