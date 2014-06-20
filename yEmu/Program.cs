@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using yEmu.Network;
+using yEmu.Realm.Databases.Requetes;
 using yEmu.Util;
 
 namespace yEmu
@@ -13,39 +15,29 @@ namespace yEmu
     class Program
     {
 
-        public const Int32 port = 4444;
 
         static void Main(string[] args)
         {
-            
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
+
+            Stopwatch time = new Stopwatch();
+                time.Start();
                 Info.Start();
-                IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
+                Configuration.load();
+
+                Accounts.LoadAccounts();
+                IPAddress ip = IPAddress.Parse(Configuration.getString("Realm_Ip"));
+                IPEndPoint localEndPoint = new IPEndPoint(ip, Configuration.getInt("Realm_Port"));
                 Server s = new Server();
-                s.StartServer(localEndPoint, 20);
-                sw.Stop();
-            
-                Console.WriteLine("Time : {0}", sw.Elapsed);
+                s.StartServer(localEndPoint, Configuration.getInt("Max_co"));
+               
 
-                while (Parse(
-                    Console.ReadLine())
-                    );
+                time.Stop();
+                Console.WriteLine("Time : {0} secondes", time.Elapsed.TotalSeconds.ToString(CultureInfo.InvariantCulture).Substring(0, 4));
+
+
+                while (Info.Commandes(Console.ReadLine()));
 
         }
-        static bool Parse(string command)
-        {
-            switch (command)
-            {
-                case "stats":
-            Info.Write("",  string.Format("Nombre Thread : {0}",Performance.cThread()), ConsoleColor.Blue);
-            Info.Write("", string.Format("CPU USAGE : {0}", Performance.CurrentCPUusage()), ConsoleColor.Blue);
-                    break;
-
-          
-            }
-
-            return true;
-        }
+  
     }
 }

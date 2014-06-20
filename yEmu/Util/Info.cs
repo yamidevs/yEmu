@@ -46,5 +46,16 @@ namespace yEmu.Util
 
             }
         }
+        public static bool Commandes(string command)
+        {
+            switch (command)
+            {
+                case "stats":
+                    Info.Write("", string.Format("Nombre Thread : {0}", Performance.cThread()), ConsoleColor.Blue);
+                    Info.Write("", string.Format("CPU USAGE : {0}", Performance.CurrentCPUusage()), ConsoleColor.Blue);
+                    break;
+            }
+            return true;
+        }
     }
 }

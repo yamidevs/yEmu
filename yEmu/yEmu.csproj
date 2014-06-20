@@ -47,8 +47,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Dapper, Version=1.1.0.0, Culture=neutral, PublicKeyToken=dfffeb5798e0be57, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Librairies\Dapper.dll</HintPath>
+    </Reference>
+    <Reference Include="MySql.Data, Version=6.5.4.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Librairies\MySql.Data.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -63,6 +73,9 @@
     <Compile Include="Network\Realm\TCPServer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Realm\Classes\Account.cs" />
+    <Compile Include="Realm\Databases\Databases.cs" />
+    <Compile Include="Realm\Databases\Requetes\Accounts.cs" />
     <Compile Include="Realm\enums\RealmStats.cs" />
     <Compile Include="Realm\Packets\HelloConnection.cs" />
     <Compile Include="Realm\Packets\IPacket.cs" />
@@ -72,6 +85,7 @@
     <Compile Include="Util\Constant.cs" />
     <Compile Include="Util\Info.cs" />
     <Compile Include="Util\Hash.cs" />
+    <Compile Include="Util\Configuration.cs" />
     <Compile Include="Util\Performance.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -93,6 +107,11 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="configuration.txt" />
+    <Content Include="Librairies\Dapper.dll" />
+    <Content Include="Librairies\MySql.Data.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
