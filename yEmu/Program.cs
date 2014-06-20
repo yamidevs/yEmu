@@ -25,6 +25,7 @@ namespace yEmu
                 Server s = new Server();
                 s.StartServer(localEndPoint, 20);
                 sw.Stop();
+            
                 Console.WriteLine("Time : {0}", sw.Elapsed);
 
                 while (Parse(
