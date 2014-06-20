@@ -1,0 +1,8 @@
+﻿~Realm_Ip 127.0.0.1;
+~Realm_Port 4444;
+~Max_co 100;
+
+~Server localhost;
+~Username root;
+~Password ;
+~Database cryoemu;
