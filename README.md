@@ -3,20 +3,21 @@ yEmu
 
 Emulateur dofus 1.29 écrit en C# 5.0
 
- 	<h1>CHANGELOG</h1>
- 	
- 	 <ul>
+ 	CHANGELOG
+ 	  ============
  	 
- 	  <li>Debut de yEmu</li>
- 	  <li>Codage de la partie réseau (Serveur/Client) </li>
- 	  <li>Implantation des classes utiles </li>
- 	  <li>Implantation des classes réseau Realm/Server</li>
- 	  <li>Codage du parser des packets</li>
- 	  <li>Implantation du micro-orm Dapper</li>
+ 	 Debut de yEmu
+ 	 Codage de la partie réseau (Serveur/Client) 
+ 	 Implantation des classes utiles 
+ 	 Implantation des classes réseau Realm/Server
+ 	 li>Codage du parser des packets
+ 	 Implantation du micro-orm Dapper
 
- 	 </ul>
- 	<h1>Information : </h1>
- 		<p>Skype : yamisaaf</p>
+ 	 
+ 	Information : 
+ 	 ============
+ 		Skype : yamisaaf
 
- 	<h1>Remerciment : </h1>
- 		<p>Nekkro,Xeo,Mathias,Bouh²,Sorrow,Ghost ...</p>
+ 	Remerciment :
+ 	 ============
+ 		Nekkro,Xeo,Mathias,Bouh²,Sorrow,Ghost ...
