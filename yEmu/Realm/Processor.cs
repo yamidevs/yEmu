@@ -45,13 +45,17 @@ namespace yEmu.Realm
         }
         public void CheckAccounts(string data)
         {
-            if (!data.Contains("#"))
+     
+            if (!data.Contains('#'))
             {
-              //  _client.OnSocketClose();
                 Console.WriteLine("beug");
+
                 return;
             }
-            var req = data.Split('#')[0];
+            var AccountInfos = data.Split('#');
+
+            var AccountName = AccountInfos[0];
+            var Password = AccountInfos[1].Remove(0, 1);
             
         }
     }
