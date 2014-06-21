@@ -9,6 +9,6 @@ namespace yEmu.Realm.Packets
     abstract class IPacket
     {
         protected string data;
-        public abstract string ToString();
+       // public abstract string ToString();
     }
 }

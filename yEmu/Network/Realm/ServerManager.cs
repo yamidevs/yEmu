@@ -25,7 +25,7 @@ namespace yEmu.Network
         {
 
         }
-        public ServerManager(Socket sock, int size)
+        public  ServerManager(Socket sock, int size)
         {
             _sock = sock;
             this._buffer = new byte[size];
@@ -33,6 +33,7 @@ namespace yEmu.Network
 
 
         }
+      
         public void OnClose()
         {
             var data = OnSocketClose;
@@ -57,10 +58,10 @@ namespace yEmu.Network
         {
             try
             {
-                this._sock.BeginReceive(this._buffer, 0, this._buffer.Length, SocketFlags.None, new AsyncCallback(this.OnReceived), (object)this._sock);
+                 this._sock.BeginReceive(this._buffer, 0, this._buffer.Length, SocketFlags.None, new AsyncCallback(this.OnReceived), (object)this._sock);
 
             }catch(Exception e){
-
+                Console.WriteLine("ERREUR : " + e.Message);
             }
         }
 
@@ -88,8 +89,10 @@ namespace yEmu.Network
                     else
                         this.OnClose();
                 }
-                catch
+                catch(Exception e)
                 {
+                    Console.WriteLine(e.HResult + "  +  " + e.Message);
+
                     this.OnClose();
                 }
             }

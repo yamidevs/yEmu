@@ -35,14 +35,24 @@ namespace yEmu.Realm
                     
                     break;
                 case RealmStats.Account:
-                   // VerificateAccount(data);
-                    Console.WriteLine("TEST VERFICTION ACCOUNT");
+                    CheckAccounts(data);
                     break;
                 case RealmStats.Server:
                     //VerificateList(data);
                     break;
 
             }
+        }
+        public void CheckAccounts(string data)
+        {
+            if (!data.Contains("#"))
+            {
+              //  _client.OnSocketClose();
+                Console.WriteLine("beug");
+                return;
+            }
+            var req = data.Split('#')[0];
+            
         }
     }
 }

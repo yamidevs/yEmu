@@ -44,16 +44,16 @@ namespace yEmu.Network
 
             }
         }
-        private void OnSocketClose()
+        public void OnSocketClose()
         {
             Info.Write("realmR", "DECONNEXION UTILISATEUR", ConsoleColor.White);
-
+            _server.OnClose();
 
            // RemoveMeOnList();
         }
-        public void Send(string data)
+        public  void Send(string data)
         {
-            _server._sock.Send(Encoding.UTF8.GetBytes(string.Format("{0}\x00", data)));
+          _server._sock.Send(Encoding.UTF8.GetBytes(string.Format("{0}\x00", data)));
         }
         public void HelloClient()
         {

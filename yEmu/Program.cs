@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ninject;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -6,7 +7,10 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using yEmu.Modules;
 using yEmu.Network;
+using yEmu.Realm.Databases;
+using yEmu.Realm.Databases.Interfaces;
 using yEmu.Realm.Databases.Requetes;
 using yEmu.Util;
 
@@ -23,8 +27,13 @@ namespace yEmu
                 time.Start();
                 Info.Start();
                 Configuration.load();
+                 Ninject.IKernel kernel = new StandardKernel(new ModulesConfig());
+                 new Accounts(kernel.Get<IDatabases>()).LoadAccounts();
+             
 
-                Accounts.LoadAccounts();
+            
+        
+
                 IPAddress ip = IPAddress.Parse(Configuration.getString("Realm_Ip"));
                 IPEndPoint localEndPoint = new IPEndPoint(ip, Configuration.getInt("Realm_Port"));
                 Server s = new Server();

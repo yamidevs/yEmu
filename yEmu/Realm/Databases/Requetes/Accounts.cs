@@ -7,17 +7,25 @@ using System.Threading.Tasks;
 using yEmu.Realm.Classes;
 using Dapper;
 using yEmu.Util;
+using yEmu.Realm.Databases.Interfaces;
+using Ninject;
 
 
 namespace yEmu.Realm.Databases.Requetes
 {
-    class Accounts
+    class Accounts 
     {
         public static List<Account> accounts = new List<Account>();
 
-        public static void LoadAccounts()
+          IDatabases _db;
+
+        public Accounts(IDatabases db)
         {
-            using (IDbConnection connection = Databases.GetConnection())
+            this._db = db;
+        }
+        public  void LoadAccounts()
+        {
+            using (IDbConnection connection = _db.GetConnection())
             {
 
                 var account = connection.Query<Account>("SELECT * FROM accounts");

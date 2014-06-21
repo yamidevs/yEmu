@@ -21,7 +21,7 @@ namespace yEmu.Network
 
         protected int _maxConnexion = 20;
 
-        protected bool _run;
+        protected bool _run = true;
 
         public bool IsRun
         {
@@ -56,11 +56,9 @@ namespace yEmu.Network
         }
 
    
-        public virtual void Start()
+        public async virtual void Start()
         {
-            
-                //IsRun = true;
-
+                                
                 _sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 try
                 {
@@ -72,16 +70,17 @@ namespace yEmu.Network
                     return;
                 }
                 _sock.Listen(maxConnexion);
-              //ThreadPool.QueueUserWorkItem(new WaitCallback(this.AcceptConnexion()));
-             new Thread( () =>  this.AcceptConnexion() ).Start();
-             //new Task( () =>  this.AcceptConnexion() ).Start();
+
+              await  Task.Factory.StartNew(() => AcceptConnexion());
+            
+          
 
         }
-        public void AcceptConnexion()
+        public  void AcceptConnexion()
         {
             try
             {
-                this._sock.BeginAccept(new AsyncCallback(this.AcceptCallBack), (object)this._sock);
+                 this._sock.BeginAccept(new AsyncCallback(this.AcceptCallBack), (object)this._sock);
 
             }
             catch(Exception ex){
@@ -91,7 +90,7 @@ namespace yEmu.Network
 
         }
 
-        private void AcceptCallBack(IAsyncResult ar)
+        private  void AcceptCallBack(IAsyncResult ar)
         {
             try
             {
@@ -107,6 +106,7 @@ namespace yEmu.Network
             {
                 this.AcceptConnexion();
             }
+            
         }
         public void Close()
         {

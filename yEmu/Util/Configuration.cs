@@ -14,6 +14,8 @@ namespace yEmu.Util
      * Classe repris de SunDofus merci a Ghost
      ******************/
         public static Dictionary<string, string> Values;
+        
+
 
         public static void LoadConfiguration()
         {
@@ -45,22 +47,24 @@ namespace yEmu.Util
         {
             Values = new Dictionary<string, string>();
 
-            var reader = new StreamReader("configuration.txt", Encoding.Default);
-
-            while (!reader.EndOfStream)
+            using (var reader = new StreamReader("configuration.txt", Encoding.Default))
             {
-                var line = reader.ReadLine();
-
-                if (line.StartsWith("~"))
+                while (!reader.EndOfStream)
                 {
-                    var lineInfos = line.Substring(1, (line.Length - 2)).Split(' ');
+                    var line = reader.ReadLine();
 
-                    if (!Values.ContainsKey(lineInfos[0].ToUpper()))
-                        Values.Add(lineInfos[0].ToUpper(), lineInfos[1]);
+                    if (line.StartsWith("~"))
+                    {
+                        var lineInfos = line.Substring(1, (line.Length - 2)).Split(' ');
+
+                        if (!Values.ContainsKey(lineInfos[0].ToUpper()))
+                            Values.Add(lineInfos[0].ToUpper(), lineInfos[1]);
+                    }
                 }
+
             }
 
-            reader.Close();
+         
         }
     }
 }

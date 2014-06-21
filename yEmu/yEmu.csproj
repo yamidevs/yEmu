@@ -55,6 +55,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Librairies\MySql.Data.dll</HintPath>
     </Reference>
+    <Reference Include="Ninject">
+      <HintPath>..\packages\Ninject.3.2.2.0\lib\net45-full\Ninject.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -66,6 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Modules\ModulesConfig.cs" />
     <Compile Include="Network\Realm\Client.cs" />
     <Compile Include="Network\Realm\Interface\IServer.cs" />
     <Compile Include="Network\Realm\Server.cs" />
@@ -75,11 +79,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Realm\Classes\Account.cs" />
     <Compile Include="Realm\Databases\Databases.cs" />
+    <Compile Include="Realm\Databases\Interfaces\IDatabases.cs" />
     <Compile Include="Realm\Databases\Requetes\Accounts.cs" />
     <Compile Include="Realm\enums\RealmStats.cs" />
-    <Compile Include="Realm\Packets\HelloConnection.cs" />
+    <Compile Include="Realm\Packets\Auth\CheckAccounts.cs" />
+    <Compile Include="Realm\Packets\Auth\HelloConnection.cs" />
     <Compile Include="Realm\Packets\IPacket.cs" />
-    <Compile Include="Realm\Packets\VersionClient.cs" />
+    <Compile Include="Realm\Packets\Auth\VersionClient.cs" />
     <Compile Include="Realm\Processor.cs" />
     <Compile Include="Util\Algorithme.cs" />
     <Compile Include="Util\Constant.cs" />
@@ -90,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
@@ -113,6 +120,7 @@
     <Content Include="Librairies\Dapper.dll" />
     <Content Include="Librairies\MySql.Data.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
