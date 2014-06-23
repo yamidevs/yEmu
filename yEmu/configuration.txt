@@ -5,4 +5,7 @@
 ~Server localhost;
 ~Username root;
 ~Password ;
-~Database cryoemu;
+~Database yemu;
+
+~Queue_client 50;
+~Time_connexion 4000;

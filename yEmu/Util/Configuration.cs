@@ -19,7 +19,7 @@ namespace yEmu.Util
 
         public static void LoadConfiguration()
         {
-            if (!File.Exists("config.txt"))
+            if (!File.Exists("configuration.txt"))
                 throw new Exception("Unable to find the file 'config.txt' !");
 
             load();

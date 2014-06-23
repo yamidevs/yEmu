@@ -12,6 +12,8 @@ namespace yEmu.Network
     abstract class TCPServer : IServer , IDisposable 
     {
         public event Action<ServerManager> connected;
+               
+        ServerManager server;
        
         public const Int32 port = 4444;
 
@@ -84,7 +86,7 @@ namespace yEmu.Network
 
             }
             catch(Exception ex){
-                Console.WriteLine("ERREUR : " + ex.HResult);
+                Console.WriteLine("ERREURa : " + ex.HResult);
                 return;
             }
 

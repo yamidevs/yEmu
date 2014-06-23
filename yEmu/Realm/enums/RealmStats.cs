@@ -11,6 +11,7 @@ namespace yEmu.Realm.enums
         {
             Version,
             Account,
+            Queue,
             Server
         }
     

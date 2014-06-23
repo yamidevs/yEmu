@@ -9,6 +9,5 @@ namespace yEmu.Realm.Databases.Interfaces
 {
     interface IDatabases
     {
-        MySqlConnection GetConnection();
     }
 }

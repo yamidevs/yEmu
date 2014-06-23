@@ -69,9 +69,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Modules\ModulesConfig.cs" />
     <Compile Include="Network\Realm\Client.cs" />
     <Compile Include="Network\Realm\Interface\IServer.cs" />
+    <Compile Include="Realm\Classes\GameServer.cs" />
+    <Compile Include="Realm\Classes\Queue.cs" />
     <Compile Include="Network\Realm\Server.cs" />
     <Compile Include="Network\Realm\ServerManager.cs" />
     <Compile Include="Network\Realm\TCPServer.cs" />
@@ -81,11 +82,16 @@
     <Compile Include="Realm\Databases\Databases.cs" />
     <Compile Include="Realm\Databases\Interfaces\IDatabases.cs" />
     <Compile Include="Realm\Databases\Requetes\Accounts.cs" />
+    <Compile Include="Realm\Databases\Requetes\GameServers.cs" />
     <Compile Include="Realm\enums\RealmStats.cs" />
     <Compile Include="Realm\Packets\Auth\CheckAccounts.cs" />
+    <Compile Include="Realm\Packets\Auth\ErrorAuth.cs" />
     <Compile Include="Realm\Packets\Auth\HelloConnection.cs" />
+    <Compile Include="Realm\Packets\Auth\Queue\QueueFlood.cs" />
+    <Compile Include="Realm\Packets\Auth\Queue\QueueList.cs" />
     <Compile Include="Realm\Packets\IPacket.cs" />
     <Compile Include="Realm\Packets\Auth\VersionClient.cs" />
+    <Compile Include="Realm\Packets\World\ServerList.cs" />
     <Compile Include="Realm\Processor.cs" />
     <Compile Include="Util\Algorithme.cs" />
     <Compile Include="Util\Constant.cs" />

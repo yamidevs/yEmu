@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using yEmu.Network.Realm;
 using yEmu.Util;
 
 namespace yEmu.Network
@@ -28,6 +29,7 @@ namespace yEmu.Network
             maxConnexion = maxco;
             base.Start();
             base.connected += this.Connexion;
+            Queue.Start();
         }
         
         public void Connexion(ServerManager socket )
@@ -41,7 +43,7 @@ namespace yEmu.Network
             {
                 lock (Clients)
                     Clients.Remove(client);
-                client.Dispose();
+                client.Dispose(true);
             };
 
         }

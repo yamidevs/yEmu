@@ -12,10 +12,14 @@ namespace yEmu.Network
 {
     class Client : IDisposable
     {
-      
+        public int CountPackets
+        {
+            get;
+            set;
+        }
 
-        public static string _key;
-        Processor parse;
+        public  string _key;
+        public Processor parse;
 
         public ServerManager _server;    
         public bool _connected
@@ -37,29 +41,32 @@ namespace yEmu.Network
         }
         public void DataArrivals(byte[] data)
         {
-            foreach (var packet in Encoding.UTF8.GetString(data).Replace("\x0a", "").Split('\x00').Where(x => x != ""))
-            {
-                parse.Parser(packet);
-                Info.Write("realmR", packet, ConsoleColor.White);
+          
+                foreach (var packet in Encoding.UTF8.GetString(data).Replace("\x0a", "").Split('\x00').Where(x => x != ""))
+                {
+                    Info.Write("realmR", packet, ConsoleColor.White);
+                    parse.Parser(packet);
 
-            }
+                }
+            
         }
         public void OnSocketClose()
         {
             Info.Write("realmR", "DECONNEXION UTILISATEUR", ConsoleColor.White);
-            _server.OnClose();
+            //_server.OnClose();
 
            // RemoveMeOnList();
         }
         public  void Send(string data)
         {
           _server._sock.Send(Encoding.UTF8.GetBytes(string.Format("{0}\x00", data)));
+          Info.Write("realmS",data, ConsoleColor.Blue);
+
         }
         public void HelloClient()
         {
             _key = Hash.RandomString(32);
             Send(string.Format("{0}{1}", new HelloConnection(_key).ToString(), _key));
-            Info.Write("realmS",new HelloConnection(_key).ToString(), ConsoleColor.Blue);
       
 
         }

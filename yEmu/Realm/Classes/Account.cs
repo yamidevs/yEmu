@@ -12,6 +12,19 @@ namespace yEmu.Realm.Classes
         public string username { get; set; }
         public string pass { get; set; }
         public string pseudo { get; set; }
+        public int gmLevel { get; set; }
+        public string question { get; set; }
+        public string Nom { get; set; }
+        public int ServerID { get; set; }
+        public Dictionary<int, List<string>> personnages { get; set; }
+        public DateTime SubscriptionDate { get; set; }
+
+
+        public Account()
+        {
+            personnages = new Dictionary<int, List<string>>();
+            SubscriptionDate = new DateTime();
+        }
 
     }
 }

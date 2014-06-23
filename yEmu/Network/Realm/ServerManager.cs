@@ -11,7 +11,7 @@ namespace yEmu.Network
     class ServerManager
     {
         public event Action<byte[]> DataReceive;
-
+        public bool _run = true;
         private object Lock = new object();
 
         public delegate void NotifictionClose();
@@ -36,11 +36,14 @@ namespace yEmu.Network
       
         public void OnClose()
         {
+                    
             var data = OnSocketClose;
             if (data != null)
             {
                 data();
             }
+            _run = false;
+            
         }
         public void OnSocketClosed(){
 
@@ -56,47 +59,51 @@ namespace yEmu.Network
         
         public void Received()
         {
-            try
-            {
+            
+                try
+                {
+                  if(_run)
+                  {                  
                  this._sock.BeginReceive(this._buffer, 0, this._buffer.Length, SocketFlags.None, new AsyncCallback(this.OnReceived), (object)this._sock);
+                   }
+                 
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("ERREURs : " + e.Message);
+                }
+            
 
-            }catch(Exception e){
-                Console.WriteLine("ERREUR : " + e.Message);
-            }
         }
 
         private void OnReceived(IAsyncResult ar)
         {
             if (!_sock.Connected) 
                 return;
-            lock (Lock)
-            {
-                try
+           
+                lock (Lock)
                 {
-                    int rcv = this._sock.EndReceive(ar);
+                   
+                        int rcv = this._sock.EndReceive(ar);
 
-                    if (rcv > 0)
-                    {
-                        byte[] bytes = new byte[rcv];
+                        if (rcv > 0)
+                        {
+                            byte[] bytes = new byte[rcv];
 
-                        for (int b = 0; b <= rcv - 1; ++b)
-                            bytes[b] = this._buffer[b];
-
-                        this.DataReceive(bytes);
-                        this._buffer = new byte[5000];
-                        this.Received();
+               
+                            Array.Copy(_buffer,0,bytes,0,bytes.Length);
+                            this.DataReceive(bytes);
+                            Array.Clear(_buffer, 0, _buffer.Length);
+                            this.Received();
+                        }
+                        else
+                            this.OnClose();
                     }
-                    else
-                        this.OnClose();
-                }
-                catch(Exception e)
-                {
-                    Console.WriteLine(e.HResult + "  +  " + e.Message);
-
-                    this.OnClose();
-                }
+               
+                
             }
-        }
+      
+        
 
         public string ip(ServerManager s)
         {

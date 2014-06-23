@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace yEmu.Realm.Packets
 {
-    class VersionClient : IPacket
+    sealed class VersionClient : IPacket
     {
            private string _key;
 

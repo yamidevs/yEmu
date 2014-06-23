@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace yEmu.Realm.Packets
 {
-    class HelloConnection : IPacket
+    sealed class HelloConnection : IPacket
     {
         private string _key;
 

@@ -7,10 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using yEmu.Modules;
 using yEmu.Network;
-using yEmu.Realm.Databases;
-using yEmu.Realm.Databases.Interfaces;
 using yEmu.Realm.Databases.Requetes;
 using yEmu.Util;
 
@@ -26,14 +23,19 @@ namespace yEmu
             Stopwatch time = new Stopwatch();
                 time.Start();
                 Info.Start();
-                Configuration.load();
-                 Ninject.IKernel kernel = new StandardKernel(new ModulesConfig());
-                 new Accounts(kernel.Get<IDatabases>()).LoadAccounts();
-             
+                Configuration.LoadConfiguration();
+                try
+                {
 
+                Accounts.LoadAccounts();
+                GameServers.LoadServers();
+
+                }catch(Exception e)
+                {
+                    Info.Write("ERROR","CHargement de database : "+ e.Message, ConsoleColor.Red);
+                }
             
-        
-
+                           
                 IPAddress ip = IPAddress.Parse(Configuration.getString("Realm_Ip"));
                 IPEndPoint localEndPoint = new IPEndPoint(ip, Configuration.getInt("Realm_Port"));
                 Server s = new Server();
