@@ -30,7 +30,8 @@ namespace yEmu
                 Accounts.LoadAccounts();
                 GameServers.LoadServers();
 
-                }catch(Exception e)
+                }
+                catch(Exception e)
                 {
                     Info.Write("ERROR","CHargement de database : "+ e.Message, ConsoleColor.Red);
                 }

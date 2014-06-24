@@ -16,21 +16,16 @@ namespace yEmu.Realm.Databases.Requetes
     class Accounts
     {
         public static List<Account> accounts = new List<Account>();
-     
+
         public static void LoadAccounts()
         {
             using (IDbConnection connection = Databases.GetConnection())
             {
 
                 var account = connection.Query<Account>("SELECT * FROM accounts");
-
-                foreach (var acc in account)
-                {
-                    acc.personnages = getAccounts(acc.id);
-                }
                 accounts.AddRange(account);
 
-        
+     
             }
             Info.Write("database", string.Format("{0} Comptes chargés", accounts.Count()), ConsoleColor.Green);
         }
@@ -38,18 +33,17 @@ namespace yEmu.Realm.Databases.Requetes
             {
                 if (accounts.Any(x => x.username == usernames))
                   {
-                      return accounts.Where(x => x.username == usernames).First();
+                      return accounts.AsParallel().Where(x => x.username == usernames).First();
                   }
                   using (IDbConnection connection = Databases.GetConnection())
                   {
                       var results = connection.Query<Account>(
                         "SELECT * FROM accounts WHERE username = @username",
                         new { username = usernames });
-                      if (results.Count() > 0)
+                      if (results.AsParallel().Count() > 0)
                       {
                           accounts.AddRange(results);
-                         var resultats =  results.Where(x => x.username == usernames).First();
-                         getAccounts(resultats.id);
+                         var resultats =  results.AsParallel().First();
                          return resultats;
                       }
                       else
@@ -58,25 +52,27 @@ namespace yEmu.Realm.Databases.Requetes
                       }
                    }                      
              }
-            public static Dictionary<int, List<string>> getAccounts(int id)
+            public static string getAccounts(int AccountsID)
             {
-                var personnages = new Dictionary<int, List<string>>();
+                var charactersByGameServer = string.Empty;
+
                 using (IDbConnection connection = Databases.GetConnection())
                 {
 
                     var results = connection.Query<Account>(
-                                 "SELECT Nom,ServerID FROM personnages WHERE AccountsID=@id",
-                                 new { id = id , }
-                                 );                  
-                    foreach(var result in results){
-                        if (!personnages.ContainsKey(result.ServerID))
-                            personnages.Add(result.ServerID, new List<string>());
+                                 "Select ServerID, count(personnagesID) AS numberCharacters FROM personnages WHERE AccountsID=@AccountsID GROUP by ServerID",
+                                 new { AccountsID = AccountsID }
+                                 );
+                    foreach(var result in results )
+                    {
 
-                        if (!personnages[result.ServerID].Contains(result.Nom))
-                            personnages[result.ServerID].Add(result.Nom);
+                             charactersByGameServer = string.Concat(charactersByGameServer,
+                                    string.Format("|{0},{1}", result.ServerID, result.numberCharacters));  
                     }
+               
+                    return charactersByGameServer;
+
                 }
-                return personnages;
             }        
         }
     }

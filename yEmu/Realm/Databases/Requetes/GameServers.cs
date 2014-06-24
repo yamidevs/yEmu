@@ -23,6 +23,7 @@ namespace yEmu.Realm.Databases.Requetes
                 var server = connection.Query<GameServer>("SELECT * FROM gameservers");
                 servers.AddRange(server);
 
+                
             }
             Info.Write("", string.Format("{0} Servers chargés", servers.Count()), ConsoleColor.Green);
         }

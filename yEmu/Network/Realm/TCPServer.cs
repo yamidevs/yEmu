@@ -12,9 +12,7 @@ namespace yEmu.Network
     abstract class TCPServer : IServer , IDisposable 
     {
         public event Action<ServerManager> connected;
-               
-        ServerManager server;
-       
+                      
         public const Int32 port = 4444;
 
         protected IPEndPoint LisenAdress;
@@ -74,8 +72,6 @@ namespace yEmu.Network
                 _sock.Listen(maxConnexion);
 
               await  Task.Factory.StartNew(() => AcceptConnexion());
-            
-          
 
         }
         public  void AcceptConnexion()
@@ -129,7 +125,6 @@ namespace yEmu.Network
 			Dispose(false);
 		}
 
-
 		public void Dispose()
 		{
 			Dispose(true);
@@ -137,10 +132,8 @@ namespace yEmu.Network
 		}
 
 		protected virtual void Dispose(bool disposing)
-		{
-			
-				Close();
-			
+		{			
+				Close();			
 		}
     }
 }

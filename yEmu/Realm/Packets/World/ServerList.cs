@@ -17,13 +17,12 @@ namespace yEmu.Realm.Packets
         public override string ToString()
         {
             var packets = string.Empty;
-            foreach (var server in GameServers.servers)
-            {
-                if (!_p.getAccounts.personnages.ContainsKey(server.id))
-                    _p.getAccounts.personnages.Add(server.id, new List<string>());
-                packets = string.Format("{0}{1}|{2}{3}", "AxK", 31536000000, server.id, _p.getAccounts.personnages[server.id].Count);
+                 
+              var server = Accounts.getAccounts(_p.getAccounts.id);
+                packets = string.Format("{0}{1}{2}", "AxK", 31536000000, server);                
+              return packets;
+
             }
-             return packets;
         }
     }
-}
+

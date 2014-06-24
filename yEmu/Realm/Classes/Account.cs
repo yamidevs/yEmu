@@ -16,13 +16,16 @@ namespace yEmu.Realm.Classes
         public string question { get; set; }
         public string Nom { get; set; }
         public int ServerID { get; set; }
-        public Dictionary<int, List<string>> personnages { get; set; }
+        public Dictionary<int, int> personnages { get; set; }
         public DateTime SubscriptionDate { get; set; }
+        public int AccountsID { get; set; }
+        public long numberCharacters { get; set; }
+
 
 
         public Account()
         {
-            personnages = new Dictionary<int, List<string>>();
+            personnages = new Dictionary<int, int>();
             SubscriptionDate = new DateTime();
         }
 

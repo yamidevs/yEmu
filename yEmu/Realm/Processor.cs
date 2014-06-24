@@ -61,6 +61,10 @@ namespace yEmu.Realm
                 case "Ax":
                     _client.Send(new ServerList(this).ToString());
                     break;
+        
+                case "AF":
+                    _client.Send("AF");
+                    return;
             }
         }
   
@@ -119,7 +123,9 @@ namespace yEmu.Realm
         }
         public void RefreshServerList()
         {
-            _client.Send(string.Format("{0}{1}", "AH", string.Join("|", GameServers.servers)));
+            var packet = string.Concat("AH",
+               string.Join("|", GameServers.servers));
+            _client.Send(packet);
         }
               
 

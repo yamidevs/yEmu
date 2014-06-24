@@ -88,9 +88,7 @@ namespace yEmu.Network
 
                         if (rcv > 0)
                         {
-                            byte[] bytes = new byte[rcv];
-
-               
+                            byte[] bytes = new byte[rcv];       
                             Array.Copy(_buffer,0,bytes,0,bytes.Length);
                             this.DataReceive(bytes);
                             Array.Clear(_buffer, 0, _buffer.Length);
@@ -99,12 +97,9 @@ namespace yEmu.Network
                         else
                             this.OnClose();
                     }
-               
-                
+                               
             }
       
-        
-
         public string ip(ServerManager s)
         {
             IPEndPoint remoteIpEndPoint = s._sock.RemoteEndPoint as IPEndPoint;
