@@ -16,13 +16,27 @@ namespace yEmu.Realm
 {
     class Processor
     {
-        public Client _client;
-        public RealmStats VerifRealm;
-        public Account getAccounts;
+        public Client Client
+        {
+            get;
+            set;
+        }
+
+        public RealmStats VerifRealm 
+        { 
+            get;
+            set; 
+        }
+
+        public Account GetAccounts 
+        {
+            get;
+            set;
+        }
 
         public Processor(Client client)
         {
-            _client = client;
+            Client = client;
         }
         public void Parser(string data)
         {
@@ -32,13 +46,12 @@ namespace yEmu.Realm
                 case RealmStats.Version:
                     if (Constant.Version != data)
                     {
-                        _client.Send(new VersionClient().ToString());
-                        _client._server.OnClose();
+                        Client.Send(new VersionClient().ToString());
+                        Client.ServerManager.OnClose();
                     }
                     else
                     {
                         VerifRealm = RealmStats.Account;
-
                     }
                     
                     break;
@@ -46,7 +59,7 @@ namespace yEmu.Realm
                     CheckAccounts(data);
                     break;
                 case RealmStats.Queue:
-                    _client.Send(new QueueList(this).ToString());
+                    Client.Send(new QueueList(this).ToString());
                     return;
                 case RealmStats.Server:
                     VerificateList(data);
@@ -59,12 +72,14 @@ namespace yEmu.Realm
             switch (data)
             {
                 case "Ax":
-                    _client.Send(new ServerList(this).ToString());
+                    Client.Send(new ServerList(this).ToString());
                     break;
         
                 case "AF":
-                    _client.Send("AF");
+                    Client.Send("AF");
                     return;
+                case"AYK":
+                    break;
             }
         }
   
@@ -74,22 +89,22 @@ namespace yEmu.Realm
         
         if ( data.Contains('#') || accounts.Length == 2)
         {
-             getAccounts = Accounts.getAccounts(accounts[0]);
-            if (getAccounts != null)
-            {                
-                if (Hash.Encrypt(getAccounts.pass, _client._key) == accounts[1])
+            GetAccounts = Accounts.getAccounts(accounts[0]);
+            if (GetAccounts != null)
+            {
+                if (Hash.Encrypt(GetAccounts.pass, Client.Key) == accounts[1])
                 {
                     if (Queue.Clients.Count >= Configuration.getInt("Queue_client"))
                     {
-                        _client.Send(new QueueFlood().ToString());
-                        _client._server.OnClose();
+                        Client.Send(new QueueFlood().ToString());
+                        Client.ServerManager.OnClose();
                     }
                     else if ((Environment.TickCount - Queue.action) < Configuration.getInt("Time_connexion"))
                     {
                         VerifRealm = RealmStats.Queue;
                         Queue.add(this);
 
-                        _client.Send(new QueueList(this).ToString());
+                        Client.Send(new QueueList(this).ToString());
                     }
                     else
                     {
@@ -101,31 +116,31 @@ namespace yEmu.Realm
              }
              else
                {
-                    _client.Send(new ErrorAuth().ToString()); 
+                   Client.Send(new ErrorAuth().ToString()); 
                 }
             }
             else
             {
-                _client.Send(new ErrorAuth().ToString());
+                Client.Send(new ErrorAuth().ToString());
             }
          }
 
         public void SendInformations()
         {
-            _client.Send(string.Format("{0}{1}", "Ad", getAccounts.pseudo));
-            _client.Send(string.Format("{0}{1}", "Ac", 0)); // 0 : communauté fr
+            Client.Send(string.Format("{0}{1}", "Ad", GetAccounts.pseudo));
+            Client.Send(string.Format("{0}{1}", "Ac", 0)); // 0 : communauté fr
 
             RefreshServerList();
 
-            _client.Send(string.Format("{0}{1}", "AlK", getAccounts.gmLevel > 0 ? 1 : 0));
-            _client.Send(string.Concat("AQ", getAccounts.question));
+            Client.Send(string.Format("{0}{1}", "AlK", GetAccounts.gmLevel > 0 ? 1 : 0));
+            Client.Send(string.Concat("AQ", GetAccounts.question));
     
         }
         public void RefreshServerList()
         {
             var packet = string.Concat("AH",
                string.Join("|", GameServers.servers));
-            _client.Send(packet);
+            Client.Send(packet);
         }
               
 

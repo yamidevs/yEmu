@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace yEmu.Network
 {
-    abstract class TCPServer : IServer , IDisposable 
+    abstract class TCPServer : IDisposable 
     {
         public event Action<ServerManager> connected;
                       

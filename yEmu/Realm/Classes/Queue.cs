@@ -13,12 +13,22 @@ namespace yEmu.Network.Realm
 
     class Queue
     {
-        public static List<Processor> Clients { get; set; }
+        public static List<Processor> Clients 
+        {
+            get;
+            set;
+        }
+       
         private static System.Timers.Timer timer;
+       
         private static bool _run;
-        public static long action { get; set; }
 
-        
+        public static long action 
+        { 
+            get;
+            set;
+        }
+       
         public static void Start()
         {
             Clients = new List<Processor>();
@@ -30,6 +40,7 @@ namespace yEmu.Network.Realm
             _run = true;
 
         }
+
         public static void add(Processor client)
         {
             Info.Write("",string.Format("Nouveau client dans la Queue"),ConsoleColor.Gray);
@@ -43,6 +54,7 @@ namespace yEmu.Network.Realm
                 timer.Start();
             }
         }
+
         public static void OnTimedEvent(object sender, EventArgs e)
         {
             if (Clients.Count <= 0)

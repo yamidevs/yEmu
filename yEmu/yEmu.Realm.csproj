@@ -69,6 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Collections\ConcurrentList.cs" />
     <Compile Include="Network\Realm\Client.cs" />
     <Compile Include="Network\Realm\Interface\IServer.cs" />
     <Compile Include="Realm\Classes\GameServer.cs" />
@@ -93,6 +94,7 @@
     <Compile Include="Realm\Packets\Auth\VersionClient.cs" />
     <Compile Include="Realm\Packets\World\ServerList.cs" />
     <Compile Include="Realm\Processor.cs" />
+    <Compile Include="Reflection\Singleton.cs" />
     <Compile Include="Util\Algorithme.cs" />
     <Compile Include="Util\Constant.cs" />
     <Compile Include="Util\Info.cs" />

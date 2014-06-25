@@ -11,15 +11,25 @@ namespace yEmu.Network
     class ServerManager
     {
         public event Action<byte[]> DataReceive;
-        public bool _run = true;
+        public bool Run
+        {
+            get
+            {
+                return true;
+            }
+            private set;
+        }
+        public Socket _sock
+        {
+            get;
+            set;
+        }
         private object Lock = new object();
 
         public delegate void NotifictionClose();
         public event NotifictionClose OnSocketClose;
 
         private byte[] _buffer = new byte[3004];
-
-        public Socket _sock;
 
         public ServerManager()
         {
@@ -30,8 +40,6 @@ namespace yEmu.Network
             _sock = sock;
             this._buffer = new byte[size];
             this.Received();
-
-
         }
       
         public void OnClose()
@@ -42,7 +50,7 @@ namespace yEmu.Network
             {
                 data();
             }
-            _run = false;
+            Run = false;
             
         }
         public void OnSocketClosed(){
@@ -62,7 +70,7 @@ namespace yEmu.Network
             
                 try
                 {
-                  if(_run)
+                    if (Run)
                   {                  
                  this._sock.BeginReceive(this._buffer, 0, this._buffer.Length, SocketFlags.None, new AsyncCallback(this.OnReceived), (object)this._sock);
                    }

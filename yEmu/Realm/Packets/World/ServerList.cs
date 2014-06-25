@@ -18,7 +18,7 @@ namespace yEmu.Realm.Packets
         {
             var packets = string.Empty;
                  
-              var server = Accounts.getAccounts(_p.getAccounts.id);
+              var server = Accounts.getAccounts(_p.GetAccounts.id);
                 packets = string.Format("{0}{1}{2}", "AxK", 31536000000, server);                
               return packets;
 

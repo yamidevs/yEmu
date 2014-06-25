@@ -13,10 +13,14 @@ namespace yEmu.Network
 {
     class Server : TCPServer
     {
-        public List<Client> Clients { get; private set; }
-        public static Object Lock = new Object();
+        public List<Client> Clients 
+        { 
+            get;
+            private set;
+        }
 
-       
+        private static Object Lock = new Object();
+      
         public Server()
         {
             Clients = new List<Client>();
@@ -30,6 +34,7 @@ namespace yEmu.Network
             base.Start();
             base.connected += this.Connexion;
             Queue.Start();
+            Info.Write("", "Connexion Realm Servers", ConsoleColor.DarkRed);
         }
         
         public void Connexion(ServerManager socket )
@@ -45,12 +50,6 @@ namespace yEmu.Network
                     Clients.Remove(client);
                 client.Dispose(true);
             };
-
-        }
-   
-     
-    
-
+        }            
     }
-
 }

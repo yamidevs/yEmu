@@ -9,3 +9,5 @@
 
 ~Queue_client 50;
 ~Time_connexion 4000;
+
+~port_game 448

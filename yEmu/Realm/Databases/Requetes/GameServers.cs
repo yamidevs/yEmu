@@ -7,23 +7,25 @@ using System.Threading.Tasks;
 using yEmu.Realm.Classes;
 using yEmu.Util;
 using Dapper;
+using yEmu.Reflection;
+using yEmu.Collections;
 
 
 namespace yEmu.Realm.Databases.Requetes
 {
-    class GameServers
+    class GameServers : Singleton<GameServers>
     {
-        public static List<GameServer> servers = new List<GameServer>();
+        public static ConcurrentList<GameServer> servers = new ConcurrentList<GameServer>();
 
-        public static void LoadServers()
+        public  void LoadServers()
         {
             using (IDbConnection connection = Databases.GetConnection())
             {
-
                 var server = connection.Query<GameServer>("SELECT * FROM gameservers");
-                servers.AddRange(server);
-
-                
+                foreach (var results in server)
+                {
+                    servers.Add(results);
+                }                 
             }
             Info.Write("", string.Format("{0} Servers chargés", servers.Count()), ConsoleColor.Green);
         }
