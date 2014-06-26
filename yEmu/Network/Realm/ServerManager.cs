@@ -127,7 +127,7 @@ namespace yEmu.Network
 
         }
 
-        public string ip(ServerManager s)
+        public string Ip(ServerManager s)
         {
             IPEndPoint remoteIpEndPoint = s.Sock.RemoteEndPoint as IPEndPoint;
             return remoteIpEndPoint.Address.ToString();

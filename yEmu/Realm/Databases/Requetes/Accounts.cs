@@ -9,7 +9,8 @@ using Dapper;
 using yEmu.Util;
 using yEmu.Realm.Databases.Interfaces;
 using Ninject;
-using yEmu.Reflection;
+using yEmu.Core;
+using yEmu.Core.Reflection;
 using System.Collections.Concurrent;
 using yEmu.Collections;
 
@@ -36,7 +37,7 @@ namespace yEmu.Realm.Databases.Requetes
             {
                 if (accounts.Any(x => x.username == usernames))
                   {
-                      return accounts.AsParallel().Where(x => x.username == usernames).First();
+                      return accounts.Where(x => x.username == usernames).First();
                   }
                   using (IDbConnection connection = Databases.GetConnection())
                   {

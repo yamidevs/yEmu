@@ -34,14 +34,14 @@ namespace yEmu.Network
             get;
             set;
         }
-        public bool _connected
+        public bool Connected
         {
             get;
             set;
         }
         public bool IsConnected
         {
-            get { return ServerManager._sock != null && ServerManager._sock.Connected; }
+            get { return ServerManager.Sock != null && ServerManager.Sock.Connected; }
         }
         public Client(ServerManager _sock )
         {
@@ -69,7 +69,7 @@ namespace yEmu.Network
 
         public  void Send(string data)
         {
-            ServerManager._sock.Send(Encoding.UTF8.GetBytes(string.Format("{0}\x00", data)));
+            ServerManager.Sock.Send(Encoding.UTF8.GetBytes(string.Format("{0}\x00", data)));
           Info.Write("realmS",data, ConsoleColor.Blue);
         }
 
@@ -92,13 +92,13 @@ namespace yEmu.Network
 
 		public virtual void Dispose(bool disposing)
 		{
-            if (ServerManager._sock != null && ServerManager._sock.Connected)
+            if (ServerManager.Sock != null && ServerManager.Sock.Connected)
 			{
 				try
 				{
-                    ServerManager._sock.Shutdown(SocketShutdown.Both);
-                    ServerManager._sock.Close();
-                    ServerManager._sock = null;
+                    ServerManager.Sock.Shutdown(SocketShutdown.Both);
+                    ServerManager.Sock.Close();
+                    ServerManager.Sock = null;
 				}
 				catch (SocketException)
 				{				

@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace yEmu.Reflection
+namespace yEmu.Core.Reflection
 {
     public abstract class Singleton<T> where T : class
     {

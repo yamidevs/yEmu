@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using yEmu.Realm.Classes;
 using yEmu.Util;
 using Dapper;
-using yEmu.Reflection;
+using yEmu.Core.Reflection;
 using yEmu.Collections;
 
 

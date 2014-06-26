@@ -69,12 +69,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Collections\ConcurrentList.cs" />
-    <Compile Include="Network\Realm\BufferManagers\BufferInterfaces.cs" />
-    <Compile Include="Network\Realm\BufferManagers\BufferObjects.cs" />
-    <Compile Include="Network\Realm\BufferManagers\MemoryInterfaces.cs" />
-    <Compile Include="Network\Realm\BufferManagers\MemoryObjects.cs" />
-    <Compile Include="Network\Realm\BufferManagers\StreamObjects.cs" />
     <Compile Include="Network\Realm\Client.cs" />
     <Compile Include="Network\Realm\Interface\IServer.cs" />
     <Compile Include="Realm\Classes\GameServer.cs" />
@@ -99,7 +93,6 @@
     <Compile Include="Realm\Packets\Auth\VersionClient.cs" />
     <Compile Include="Realm\Packets\World\ServerList.cs" />
     <Compile Include="Realm\Processor.cs" />
-    <Compile Include="Reflection\Singleton.cs" />
     <Compile Include="Util\Algorithme.cs" />
     <Compile Include="Util\Constant.cs" />
     <Compile Include="Util\Info.cs" />
@@ -133,7 +126,15 @@
     <Content Include="Librairies\Dapper.dll" />
     <Content Include="Librairies\MySql.Data.dll" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\yEmu.Core\yEmu.Core.csproj">
+      <Project>{96305273-7e1b-4654-9605-263dcb946294}</Project>
+      <Name>yEmu.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
