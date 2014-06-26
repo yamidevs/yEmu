@@ -5,7 +5,7 @@ VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "yEmu", "yEmu\yEmu.csproj", "{5A8E79CC-4DF4-424C-A6B8-F4A2663BA711}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "yEmu.Core", "yEmu.Core\yEmu.Core.csproj", "{96305273-7E1B-4654-9605-263DCB946294}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "yEmu.Core", "yEmu.Core\yEmu.Core.csproj", "{F2853550-859F-4902-BFA4-729E388EC92A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{5A8E79CC-4DF4-424C-A6B8-F4A2663BA711}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A8E79CC-4DF4-424C-A6B8-F4A2663BA711}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A8E79CC-4DF4-424C-A6B8-F4A2663BA711}.Release|Any CPU.Build.0 = Release|Any CPU
-		{96305273-7E1B-4654-9605-263DCB946294}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{96305273-7E1B-4654-9605-263DCB946294}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{96305273-7E1B-4654-9605-263DCB946294}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{96305273-7E1B-4654-9605-263DCB946294}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2853550-859F-4902-BFA4-729E388EC92A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2853550-859F-4902-BFA4-729E388EC92A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2853550-859F-4902-BFA4-729E388EC92A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2853550-859F-4902-BFA4-729E388EC92A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

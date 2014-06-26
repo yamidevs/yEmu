@@ -128,7 +128,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\yEmu.Core\yEmu.Core.csproj">
-      <Project>{96305273-7e1b-4654-9605-263dcb946294}</Project>
+      <Project>{f2853550-859f-4902-bfa4-729e388ec92a}</Project>
       <Name>yEmu.Core</Name>
     </ProjectReference>
   </ItemGroup>
