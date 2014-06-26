@@ -11,13 +11,13 @@ namespace yEmu.Network
 {
     abstract class TCPServer : IDisposable 
     {
-        public event Action<ServerManager> connected;
+        public event Action<ServerManager> Connected;
                       
-        public const Int32 port = 4444;
+        public const Int32 Port = 4444;
 
         protected IPEndPoint LisenAdress;
 
-        protected Socket _sock;
+        protected Socket Sock;
 
         protected int _maxConnexion = 20;
 
@@ -28,7 +28,7 @@ namespace yEmu.Network
             set { _run = value; }
             get { return _run; }
         }
-        public virtual int maxConnexion
+        public virtual int MaxConnexion
         {
             get { return _maxConnexion; }
             set
@@ -58,18 +58,18 @@ namespace yEmu.Network
    
         public async virtual void Start()
         {
-                                
-                _sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+            Sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 try
                 {
-                    _sock.Bind(EndPoint);
+                    Sock.Bind(EndPoint);
                 }
                 catch
                 {
                     Console.WriteLine("PORT INVALIDE ");
                     return;
                 }
-                _sock.Listen(maxConnexion);
+                Sock.Listen(MaxConnexion);
 
               await  Task.Factory.StartNew(() => AcceptConnexion());
 
@@ -78,7 +78,7 @@ namespace yEmu.Network
         {
             try
             {
-                 this._sock.BeginAccept(new AsyncCallback(this.AcceptCallBack), (object)this._sock);
+                this.Sock.BeginAccept(new AsyncCallback(this.AcceptCallBack), (object)this.Sock);
 
             }
             catch(Exception ex){
@@ -92,10 +92,10 @@ namespace yEmu.Network
         {
             try
             {
-                var data = connected;
+                var data = Connected;
                 if (data != null)
                 {
-                    this.connected(new ServerManager(this._sock.EndAccept(ar), 5000));
+                    this.Connected(new ServerManager(this.Sock.EndAccept(ar), 5000));
                 }
 
                 this.AcceptConnexion();
@@ -110,12 +110,12 @@ namespace yEmu.Network
         {
             lock (this)
             {
-                if (_sock != null && _sock.Connected)
+                if (Sock != null && Sock.Connected)
                 {
-                    _sock.Shutdown(SocketShutdown.Both);
-                    _sock.Close();
+                    Sock.Shutdown(SocketShutdown.Both);
+                    Sock.Close();
 
-                    _sock = null;
+                    Sock = null;
                 }
             }
         }

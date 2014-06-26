@@ -1,25 +1,30 @@
-﻿using System;
+﻿using ServerToolkit.BufferManagement;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-
 namespace yEmu.Network
 {
     class ServerManager
     {
         public event Action<byte[]> DataReceive;
+        BufferPool Pool;
+        private int Size_buffer = 8192;
         public bool Run
         {
             get
             {
                 return true;
             }
-            private set;
+            set
+            {
+                Run = value;
+            }
         }
-        public Socket _sock
+        public Socket Sock
         {
             get;
             set;
@@ -29,89 +34,105 @@ namespace yEmu.Network
         public delegate void NotifictionClose();
         public event NotifictionClose OnSocketClose;
 
-        private byte[] _buffer = new byte[3004];
 
         public ServerManager()
         {
 
         }
-        public  ServerManager(Socket sock, int size)
+        public ServerManager(Socket sock, int size)
         {
-            _sock = sock;
-            this._buffer = new byte[size];
+            Sock = sock;
+            Pool = new BufferPool(1 * 1024 * 1024, 1, 1);
             this.Received();
         }
-      
+
         public void OnClose()
         {
-                    
+
             var data = OnSocketClose;
             if (data != null)
             {
                 data();
             }
             Run = false;
-            
+
         }
-        public void OnSocketClosed(){
+        public void OnSocketClosed()
+        {
 
             lock (this.Lock)
             {
                 try
                 {
-                    this._sock.Close();
+                    this.Sock.Close();
                 }
                 catch { }
             }
         }
-        
+
         public void Received()
         {
-            
-                try
+            try
+            {
+                if (Run)
                 {
-                    if (Run)
-                  {                  
-                 this._sock.BeginReceive(this._buffer, 0, this._buffer.Length, SocketFlags.None, new AsyncCallback(this.OnReceived), (object)this._sock);
-                   }
-                 
+                    var buffer = Pool.GetBuffer(Size_buffer);
+                    this.Sock.BeginReceive(buffer.GetSegments(), SocketFlags.None, OnReceived, buffer);
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine("ERREURs : " + e.Message);
-                }
-            
 
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("ERREURs : " + e.Message);
+            }
         }
 
         private void OnReceived(IAsyncResult ar)
         {
-            if (!_sock.Connected) 
+            if (!Sock.Connected)
                 return;
-           
-                lock (Lock)
-                {
-                   
-                        int rcv = this._sock.EndReceive(ar);
 
-                        if (rcv > 0)
-                        {
-                            byte[] bytes = new byte[rcv];       
-                            Array.Copy(_buffer,0,bytes,0,bytes.Length);
-                            this.DataReceive(bytes);
-                            Array.Clear(_buffer, 0, _buffer.Length);
-                            this.Received();
-                        }
-                        else
-                            this.OnClose();
-                    }
-                               
+         
+            var recvBuffer = (IBuffer)ar.AsyncState;
+            int bytesRead = 0;
+            try
+            {
+                bytesRead = this.Sock.EndReceive(ar);
+                byte[] data = new byte[bytesRead > 0 ? bytesRead : 0];
+
+                if (bytesRead > 0)
+                {
+                    recvBuffer.CopyTo(data, 0, bytesRead);
+                    this.DataReceive(data);
+                    this.Received();
+                }
+                else
+                {
+                    this.OnClose();
+                    return;
+                }
+
             }
-      
+            catch (Exception ex)
+            {
+                Console.WriteLine("Erreur : " + ex.HResult);
+            }
+            finally
+            {
+                if (recvBuffer != null)
+                {
+                    recvBuffer.Dispose();
+                }
+            }
+
+        }
+
         public string ip(ServerManager s)
         {
-            IPEndPoint remoteIpEndPoint = s._sock.RemoteEndPoint as IPEndPoint;
+            IPEndPoint remoteIpEndPoint = s.Sock.RemoteEndPoint as IPEndPoint;
             return remoteIpEndPoint.Address.ToString();
         }
     }
 }
+
+

@@ -70,6 +70,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\ConcurrentList.cs" />
+    <Compile Include="Network\Realm\BufferManagers\BufferInterfaces.cs" />
+    <Compile Include="Network\Realm\BufferManagers\BufferObjects.cs" />
+    <Compile Include="Network\Realm\BufferManagers\MemoryInterfaces.cs" />
+    <Compile Include="Network\Realm\BufferManagers\MemoryObjects.cs" />
+    <Compile Include="Network\Realm\BufferManagers\StreamObjects.cs" />
     <Compile Include="Network\Realm\Client.cs" />
     <Compile Include="Network\Realm\Interface\IServer.cs" />
     <Compile Include="Realm\Classes\GameServer.cs" />
