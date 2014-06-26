@@ -12,7 +12,7 @@ namespace yEmu.Network
     {
         public event Action<byte[]> DataReceive;
         BufferPool Pool;
-        private int Size_buffer = 8192;
+            private int Size_buffer = 8192;
         public bool Run
         {
             get

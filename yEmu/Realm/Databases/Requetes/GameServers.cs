@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using yEmu.Realm.Classes;
-using yEmu.Util;
 using Dapper;
 using yEmu.Core.Reflection;
 using yEmu.Collections;
+using yEmu.Util;
 
 
 namespace yEmu.Realm.Databases.Requetes

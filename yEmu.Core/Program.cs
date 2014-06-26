@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace yEmu.Util
+namespace yEmu.Core
 {
-    class Constant
+    class Program
     {
-        public const string Version = "1.29.1"; // version actuel du client
-
+        static void Main(string[] args)
+        {
+        }
     }
 }

@@ -94,10 +94,10 @@
     <Compile Include="Realm\Packets\World\ServerList.cs" />
     <Compile Include="Realm\Processor.cs" />
     <Compile Include="Util\Algorithme.cs" />
-    <Compile Include="Util\Constant.cs" />
-    <Compile Include="Util\Info.cs" />
-    <Compile Include="Util\Hash.cs" />
     <Compile Include="Util\Configuration.cs" />
+    <Compile Include="Util\Constant.cs" />
+    <Compile Include="Util\Hash.cs" />
+    <Compile Include="Util\Info.cs" />
     <Compile Include="Util\Performance.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -125,9 +125,6 @@
     <Content Include="configuration.txt" />
     <Content Include="Librairies\Dapper.dll" />
     <Content Include="Librairies\MySql.Data.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\yEmu.Core\yEmu.Core.csproj">

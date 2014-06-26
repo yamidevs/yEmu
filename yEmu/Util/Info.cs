@@ -16,14 +16,14 @@ namespace yEmu.Util
             Console.ForegroundColor = old;
 
         }
-        public static void Write(string type, string message, ConsoleColor color )
+        public static void Write(string type, string message, ConsoleColor color)
         {
             ConsoleColor old = Console.ForegroundColor;
             Console.ForegroundColor = color;
-            switch(type)
+            switch (type)
             {
                 case "realmS":
-                    Console.WriteLine(string.Format("[ REALM.S ] {0}" , message));
+                    Console.WriteLine(string.Format("[ REALM.S ] {0}", message));
                     break;
                 case "gameS":
                     Console.WriteLine(string.Format("[ GAME.S ] {0}", message));
@@ -41,8 +41,8 @@ namespace yEmu.Util
                     Console.WriteLine(string.Format("[ DATABASE ] {0}", message));
                     break;
                 default:
-                     Console.WriteLine(string.Format("[ INFO ] {0}", message));
-                     break;
+                    Console.WriteLine(string.Format("[ INFO ] {0}", message));
+                    break;
 
             }
         }
