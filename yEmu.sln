@@ -3,9 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Express 2013 for Windows Desktop
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "yEmu", "yEmu\yEmu.csproj", "{5A8E79CC-4DF4-424C-A6B8-F4A2663BA711}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "yEmu.Auth", "yEmu\yEmu.Auth.csproj", "{5A8E79CC-4DF4-424C-A6B8-F4A2663BA711}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "yEmu.Core", "yEmu.Core\yEmu.Core.csproj", "{F2853550-859F-4902-BFA4-729E388EC92A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "yEmu.Utils", "yEmu.Utils\yEmu.Utils.csproj", "{E56D47B5-0ECE-4C59-A2B3-49BD64B4D89B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "yEmu.World", "yEmu.World\yEmu.World.csproj", "{5CA86967-14DC-4585-9008-A26FE0DA3823}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "yEmu.Messages", "yEmu.Messages\yEmu.Messages.csproj", "{ACCA7361-1FD5-442B-960E-1E074F81A39C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +27,18 @@ Global
 		{F2853550-859F-4902-BFA4-729E388EC92A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2853550-859F-4902-BFA4-729E388EC92A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2853550-859F-4902-BFA4-729E388EC92A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E56D47B5-0ECE-4C59-A2B3-49BD64B4D89B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E56D47B5-0ECE-4C59-A2B3-49BD64B4D89B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E56D47B5-0ECE-4C59-A2B3-49BD64B4D89B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E56D47B5-0ECE-4C59-A2B3-49BD64B4D89B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CA86967-14DC-4585-9008-A26FE0DA3823}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CA86967-14DC-4585-9008-A26FE0DA3823}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CA86967-14DC-4585-9008-A26FE0DA3823}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CA86967-14DC-4585-9008-A26FE0DA3823}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACCA7361-1FD5-442B-960E-1E074F81A39C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACCA7361-1FD5-442B-960E-1E074F81A39C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACCA7361-1FD5-442B-960E-1E074F81A39C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACCA7361-1FD5-442B-960E-1E074F81A39C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

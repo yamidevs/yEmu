@@ -1,0 +1,8 @@
+﻿~Game_Ip 127.0.0.1;
+~Game_Port 4444;
+~Max_co 100;
+
+~Server localhost;
+~Username root;
+~Password ;
+~Database yemu.world;

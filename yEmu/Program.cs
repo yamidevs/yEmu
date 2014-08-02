@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using yEmu.InterCommunication;
 using yEmu.Network;
 using yEmu.Realm.Databases.Requetes;
 using yEmu.Util;
@@ -17,6 +18,8 @@ namespace yEmu
     {
         static void Main(string[] args)
         {
+            Console.Title = "yEmu Auth";
+
             Stopwatch Time = new Stopwatch();
             Time.Start();
                 Info.Start();
@@ -31,12 +34,16 @@ namespace yEmu
                 {
                     Info.Write("ERROR","CHargement de database : "+ e.Message, ConsoleColor.Red);
                 }
-                                       
-                IPAddress Ip = IPAddress.Parse(Configuration.getString("Realm_Ip"));
-                IPEndPoint LocalEndPointRealm = new IPEndPoint(Ip, Configuration.getInt("Realm_Port"));
 
-                Server Realm = new Server();
-                Realm.StartServer(LocalEndPointRealm, Configuration.getInt("Max_co"));
+                IPAddress Ip = IPAddress.Parse("127.0.0.1");
+
+                IPEndPoint LocalEndPointInter = new IPEndPoint(Ip, 3450);
+                InterServer apps = new InterServer(LocalEndPointInter, 100);
+                apps.Run();
+
+                IPEndPoint LocalEndPoint = new IPEndPoint(Ip, 4444);
+                TCPServer app = new TCPServer(LocalEndPoint, 100);
+                app.Run();
 
                 Time.Stop();
 
