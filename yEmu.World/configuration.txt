@@ -6,3 +6,10 @@
 ~Username root;
 ~Password ;
 ~Database yemu.world;
+
+~ServerAuth localhost;
+~UsernameAuth root;
+~PasswordAuth ;
+~DatabaseAuth yemu;
+
+~Game_key loool;

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using yEmu.Network;
 using yEmu.Util;
+using yEmu.World.Core.Databases.Requetes;
 using yEmu.World.InterCommunication;
 
 namespace yEmu.World
@@ -24,6 +25,16 @@ namespace yEmu.World
             Info.Start();
             Configuration.LoadConfiguration();
 
+            try
+            {
+                Servers.Instance.Load();
+                Accounts.Instance.Load();
+                Character.Instance.Load();
+            }
+            catch (Exception e)
+            {
+                Info.Write("ERROR", "CHargement de database : " + e.Message, ConsoleColor.Red);
+            }
             IPAddress Ip = IPAddress.Parse(Configuration.getString("Game_Ip"));
 
             IPEndPoint LocalEndPoint = new IPEndPoint(Ip, 5556);

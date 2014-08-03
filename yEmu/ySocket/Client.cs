@@ -22,7 +22,7 @@ namespace yEmu.Network
             get;
             set;
         }
-        public int sizeBuffer = 1024;
+        public int sizeBuffer = 8192;
 
         private object m_lock = new object();
 
@@ -82,6 +82,7 @@ namespace yEmu.Network
             try
             {
                     var data = args.Buffer;
+
                     Array.Resize<byte>(ref data, args.BytesTransferred);
 
                     if (args.BytesTransferred <= 0)

@@ -16,7 +16,7 @@ namespace yEmu.World.Core
    public class Processor
     {
 
-       public  Dictionary<string, Action<string>> Personnages
+       public  Dictionary<string, Action<string>> PacketHandler
        {
            get;
           private set;
@@ -33,7 +33,7 @@ namespace yEmu.World.Core
         public Processor(AuthClient client)
         {
             Clients = client;
-            Personnages = new Dictionary<string, Action<string>>();
+            PacketHandler = new Dictionary<string, Action<string>>();
             this.Inits();
    
         }
@@ -50,7 +50,7 @@ namespace yEmu.World.Core
                var attribute = item.GetCustomAttribute<PacketAttribute>();
 
                Action<string> action = (Action<string>)Delegate.CreateDelegate(typeof(Action<string>), item);
-               Personnages.Add(attribute.PacketData, action);
+               PacketHandler.Add(attribute.PacketData, action);
 
            }
        }
@@ -72,9 +72,9 @@ namespace yEmu.World.Core
 
                 case WorldStats.Personnages:
 
-                    if (this.Personnages.ContainsKey(header))
+                    if (this.PacketHandler.ContainsKey(header))
                     {
-                        this.Personnages[header](packet.Substring(2));
+                        this.PacketHandler[header](packet.Substring(2));
                     }
 
                     break;
