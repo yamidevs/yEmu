@@ -8,6 +8,7 @@ namespace yEmu.World.Core.Classes.Accounts
 {
    public class Accounts
     {
+
         public int Id { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }

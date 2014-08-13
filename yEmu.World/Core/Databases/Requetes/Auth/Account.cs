@@ -8,10 +8,11 @@ using Dapper;
 using yEmu.Collections;
 using yEmu.Util;
 using yEmu.Core.Reflection;
+using yEmu.World.Core.Classes.Accounts;
 
 namespace yEmu.World.Core.Databases.Requetes
 {
-    class Accounts : Singleton<Accounts>
+    class Account : Singleton<Account>
     {
 
         public static ConcurrentList<Accounts> accounts = new ConcurrentList<Accounts>();

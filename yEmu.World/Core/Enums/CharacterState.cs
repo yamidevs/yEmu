@@ -4,9 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace yEmu.World.Core.Classes.Accounts
+namespace yEmu.World.Core.Enums
 {
-    class AccountCharacters
+    public enum CharacterState
     {
+        Free,
+        OnExchange,
+        OnMove,
+        OnFight,
     }
 }

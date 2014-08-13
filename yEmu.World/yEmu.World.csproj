@@ -48,18 +48,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Attributes\PacketAttribute.cs" />
-    <Compile Include="Core\Classes\Accounts\AccountCharacters.cs" />
     <Compile Include="Core\Classes\Accounts\Accounts.cs" />
     <Compile Include="Core\Classes\Characters\Characters.cs" />
+    <Compile Include="Core\Classes\Maps\Maps_data.cs" />
+    <Compile Include="Core\Classes\Maps\PathFinding.cs" />
+    <Compile Include="Core\Classes\Maps\Triggers.cs" />
     <Compile Include="Core\Databases\AuthDatabases.cs" />
     <Compile Include="Core\Databases\Databases.cs" />
-    <Compile Include="Core\Databases\Requetes\Auth\Accounts.cs" />
+    <Compile Include="Core\Databases\Requetes\Auth\Account.cs" />
     <Compile Include="Core\Databases\Requetes\Character.cs" />
-    <Compile Include="Core\Databases\Requetes\CharactersAccounts.cs" />
     <Compile Include="Core\Databases\Requetes\Auth\Servers.cs" />
+    <Compile Include="Core\Databases\Requetes\Map.cs" />
+    <Compile Include="Core\Databases\Requetes\Trigger.cs" />
+    <Compile Include="Core\Enums\CharacterState.cs" />
     <Compile Include="Core\Enums\Class.cs" />
+    <Compile Include="Core\Enums\GameAction.cs" />
     <Compile Include="Core\Enums\WorldStats.cs" />
     <Compile Include="Core\Processor.cs" />
+    <Compile Include="Core\HandlerPacket.cs" />
     <Compile Include="InterCommunication\InterClient.cs" />
     <Compile Include="Network\AuthClient.cs" />
     <Compile Include="Network\TCPServer.cs" />

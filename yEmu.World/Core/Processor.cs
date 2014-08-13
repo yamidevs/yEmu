@@ -10,6 +10,11 @@ using yEmu.Network;
 using yEmu.World.Core.Attributes;
 using yEmu.World.Core.Classes.Accounts;
 using yEmu.World.Core.Enums;
+using yEmu.World.Core.Databases.Requetes;
+using yEmu.Util;
+using System.Text.RegularExpressions;
+using yEmu.World.Core.Classes.Characters;
+using yEmu.World.Core.Classes.Maps;
 
 namespace yEmu.World.Core
 {
@@ -22,15 +27,17 @@ namespace yEmu.World.Core
           private set;
        }
  
-        public static AuthClient  Clients
+       public static AuthClient  Clients
         {
             get;
             set;
         }
 
-        private WorldStats _stats;
+       public static CharacterState CharacterStates;
 
-        public Processor(AuthClient client)
+       public static WorldStats _stats;
+
+       public Processor(AuthClient client)
         {
             Clients = client;
             PacketHandler = new Dictionary<string, Action<string>>();
@@ -55,7 +62,7 @@ namespace yEmu.World.Core
            }
        }
 
-        public void Parser(string packet)
+       public void Parser(string packet)
         {
             var header = packet.Substring(0, 2);
 
@@ -65,7 +72,7 @@ namespace yEmu.World.Core
 
                     if (header == "AT")
                     {
-                        ReponseParse(packet.Substring(2));
+                        HandlerPacket.ReponseParse(packet.Substring(2));
                     }
 
                     break;
@@ -76,76 +83,214 @@ namespace yEmu.World.Core
                     {
                         this.PacketHandler[header](packet.Substring(2));
                     }
+                    break;
 
+                case WorldStats.CreateGame:
+                    if (header == "GC")
+                        HandlerPacket.GameInfos();
+
+                    break;
+
+                case WorldStats.InGame:
+
+                    if (this.PacketHandler.ContainsKey(header))
+                    {
+                        this.PacketHandler[header](packet.Substring(2));
+                    }
                     break;
             }
         }
 
-        private void ReponseParse(string data)
-        {
-            var date = data.Split('|')[0];
 
-            var ip = data.Split('|')[1];
-            IPEndPoint Ip = Processor.Clients.Sock.RemoteEndPoint as IPEndPoint;
-
-           /* if (DateTime.ParseExact(date, "MM/dd/yyyy HH:mm:ss", null).AddSeconds(10) <
-                DateTime.ParseExact(DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss"), "MM/dd/yyyy HH:mm:ss", null))
-            {
-                this.Client.Send("M130");
-                this.Client.Disconnect(Client);
-            }
-            else */if (ip.Equals(Ip))
-            {
-                Processor.Clients.Send("M031");
-                Processor.Clients.Disconnect(Clients);
-            }
-            else
-            {
-                var account = data.Split('|')[2].Split(',');
-                try
-                {
-                    Processor.Clients.Accounts =
-                                        new Accounts
-                                        {
-                                            Id = int.Parse(account[0]),
-                                            Username = account[1],
-                                            Password = account[2],
-                                            Pseudo = account[3],
-                                            Question = account[4],
-                                            Reponse = account[5],
-                                            Level = int.Parse(account[6]),
-                                            BannedUntil =
-                                                account[7] == ""
-                                                    ? (DateTime?)null
-                                                    : DateTime.Parse(account[7].ToString(CultureInfo.InvariantCulture)),
-                                            Subscription =
-                                                account[8] == ""
-                                                    ? (DateTime?)null
-                                                    : DateTime.Parse(account[8].ToString(CultureInfo.InvariantCulture))
-
-                                        };
-                }
-                catch
-                {
-                    Console.WriteLine("Packet d'account incorrect");
-                }
-
-                _stats = WorldStats.Personnages;
-                Processor.Clients.Send("ATK0");
-            }
-        }
-
-        [Packet("AV")]
-        public static void Version(string data)
+       [Packet("AV")]
+       public static void Version(string data)
         {
             Processor.Clients.Send(string.Format("{0}{1}", "AV", "0"));
         }
 
-        [Packet("AL")]
-        public static void ListPersonnages(string data)
+       [Packet("AL")]
+       public static void ListCharacters(string data)
         {
-            Processor.Clients.Send(string.Format("{0}{1}", "ALK", "0"));
+            var count = Character.characters.Count(x => x.accounts == Processor.Clients.Accounts.Id);
+            var personnages = Character.characters.Where(x => x.accounts == Processor.Clients.Accounts.Id).
+                Aggregate(string.Empty,
+                        (current, x) =>
+                            current + x.InfosCharacter());
+            Processor.Clients.Send(string.Format("{0}{1}|{2}{3}", "ALK", "31536000000", count, personnages));
 
         }
+
+       [Packet("AP")]
+       public static void GeneratePseudo(string data)
+        {
+            Processor.Clients.Send(string.Format("{0}{1}","APK",
+                Algorithme.GenerateRandomName()));
+       
+        }
+
+       [Packet("AA")]
+       public static void CreateCharacters(string data)
+       {
+           if (Character.characters.FindAll(x => x.accounts == Processor.Clients.Accounts.Id).Count >= int.Parse(Configuration.getString("PersonnagesComptes")))
+           {
+               Processor.Clients.Send("AAEf");
+               return;
+           }
+
+           var datas = data.Split('|');
+
+           var name = datas[0];
+
+           var classe = int.Parse(datas[1]);
+
+           var sex = int.Parse(datas[2]);
+
+           var color1 = int.Parse(datas[3]);
+
+           var color2 = int.Parse(datas[4]);
+
+           var color3 = int.Parse(datas[5]);
+
+           if (Character.characters.All(x => x.nom != name) && name.Length >= 3 && name.Length <= 20)
+           {
+               var reg = new Regex("^[a-zA-Z-]+$");
+
+               if (reg.IsMatch(name) && name.Count(c => c == '-') < 3)
+               {
+                   if (classe >= 1 && classe <= 12 && (sex == 1 || sex == 0))
+                   {
+                       var newCharacter = new Characters
+                       {
+                           id =
+                               Character.characters.Count > 0
+                                   ? Character.characters.OrderByDescending(x => x.id).First().id + 1
+                                   : 1,
+                           nom = name,
+                           Classes = (Class)classe,
+                           sexe = sex,
+                           color1 = color1,
+                           color2 = color2,
+                           color3 = color3,
+                           level = int.Parse(Configuration.getString("Start_level")),
+                           skin = int.Parse(classe + "" + sex),
+                           accounts = Processor.Clients.Accounts.Id,
+                           PdvNow =
+                               (int.Parse(Configuration.getString("Start_level")) - 1) * Characters.GainHpPerLvl + Characters.BaseHp,
+                           PdvMax =
+                               (int.Parse(Configuration.getString("Start_level")) - 1) * Characters.GainHpPerLvl + Characters.BaseHp,
+                       };
+
+                       newCharacter.GenerateInfos(Processor.Clients.Accounts.Level);
+
+                       Character.Create(newCharacter);
+
+                       Processor.Clients.Send("AAK");
+
+                       Processor.Clients.Send("TB");
+
+                       ListCharacters("");
+                   }
+                   else
+                   {
+                       Processor.Clients.Send("AAEf");
+                   }
+               }
+               else
+               {
+                   Processor.Clients.Send("AAEn");
+               }
+           }
+           else
+           {
+               Processor.Clients.Send("AAEa");
+           }
+
+       }
+
+       [Packet("AS")]
+       public static void SendInfos(string data)
+       {
+           var character = Character.characters.Find(x => x.id == int.Parse(data));
+
+           if (character == null)
+           {
+               return;
+           }
+
+           Processor.Clients.Character = character;
+
+           Processor.Clients.Send(string.Format("{0}|{1}", "ASK" , character.SelectedCharacters()));
+           _stats = WorldStats.CreateGame;
+       }
+
+       [Packet("GI")]
+       public static void MapsInfos(string data)
+       {
+           Clients.Clients();
+           Processor.Clients.Character.Maps.Add(Processor.Clients.Character);
+           Processor.Clients.Character.Maps.Send(string.Format("{0}{1}", "GM", Processor.Clients.Character.Maps.DisplayChars()));
+           Processor.Clients.Send("GDK");
+       }
+
+       [Packet("GA")]
+       public static void StartRequest(string data)
+       {
+           switch ((GameAction)int.Parse(data.Substring(0, 1)))
+           {
+               case GameAction.MAP_MOVEMENT:
+                   HandlerPacket.CharacterMove(data);
+                   break;
+           }
+       }
+
+       [Packet("GK")]
+       public static void FinishRequest(string data)
+       {
+           switch (data.Substring(0, 1))
+           {
+               case "E":
+                   HandlerPacket.ChangeDestination(data);
+                   break;
+
+               case "K":
+                   HandlerPacket.CharacterEndMove();
+                   break;
+           }
+       }
+
+       [Packet("eD")]
+       public static void ChangeDirection(string data)
+       {
+           int direction;
+
+           if (!int.TryParse(data, out direction))
+           {
+               return;
+           }
+
+           if (direction < 0 | direction > 7)
+           {
+               Console.WriteLine("direction");
+               return;
+           }
+           Processor.Clients.Character.Maps.Send(string.Format("{0}{1}|{2}", "eD", Processor.Clients.Character.id, direction));
+       }
+
+       [Packet("BS")]
+       public static void Smiley(string data)
+       {
+           int smiley;
+
+           if (!int.TryParse(data, out smiley))
+           {
+               return;
+           }
+
+           if (smiley < 1 | smiley > 15)
+           {
+               return;
+           }
+           Processor.Clients.Character.Maps.Send(string.Format("{0}{1}|{2}","cS", Processor.Clients.Character.id, data));
+       }
     }
 }

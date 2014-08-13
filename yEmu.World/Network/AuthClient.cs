@@ -7,12 +7,19 @@ using System.Threading.Tasks;
 using yEmu.Util;
 using yEmu.World.Core;
 using yEmu.World.Core.Classes.Accounts;
+using yEmu.World.Core.Classes.Characters;
 
 namespace yEmu.Network
 {
     public class AuthClient : Client
     {
         public Accounts Accounts
+        {
+            get;
+            set;
+        }
+
+        public Characters Character
         {
             get;
             set;
@@ -30,7 +37,11 @@ namespace yEmu.Network
             Send("HG");
 
         }
-     
+
+        public void Clients()
+        {
+            base.Characters = Character;
+        }
         public override bool DataArriavls(byte[] data)
         {
             if (data.Length == 0)

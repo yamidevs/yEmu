@@ -5,15 +5,17 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using yEmu.Core.BufferPool;
+using yEmu.World.Core;
+using yEmu.World.Core.Classes.Characters;
 
 namespace yEmu.Network
 {
     public abstract class Client : IDisposable
     {
 
-        BufferPool<byte[]> myPool;
+        byte[] Buffer;
 
+        byte[] BufferSent;
 
         public abstract bool DataArriavls(byte[] data);
 
@@ -31,19 +33,16 @@ namespace yEmu.Network
             get;
             private set;
         }
-
-      /*  public Processor Processors
+ 
+        public Characters Characters
         {
             get;
             set;
         }
 
- */
         protected Client(Socket _sock, Server server)
         {
-            myPool = new BufferPool<byte[]>(() => new byte[sizeBuffer]);
-            myPool.Allocate(1);
-
+            Characters = new Characters();
             this.Sock = _sock;
 
             _server = server;
@@ -56,10 +55,10 @@ namespace yEmu.Network
      
                 var args = new SocketAsyncEventArgs();
 
-
-                var buffer = myPool.Dequeue();
-                Array.Clear(buffer, 0, 0);
-                myPool.Enqueue(buffer);
+              
+                    this.Buffer = new byte[sizeBuffer];
+                    args.SetBuffer(this.Buffer,args.Offset, sizeBuffer);
+                    Array.Clear(this.Buffer, 0, 0);
                                    
                     args.UserToken = this;
                     args.Completed += ReceiveAsyncComplete;
@@ -128,13 +127,9 @@ namespace yEmu.Network
             args.Completed += SendAsyncComplete;
             args.UserToken = Messages;
 
-            var buffer = myPool.Dequeue();
-
-            buffer = Encoding.UTF8.GetBytes(Messages + "\0");
-            args.SetBuffer(buffer, 0, buffer.Length);
-            Array.Clear(buffer, 0, 0);
-
-            myPool.Enqueue(buffer);
+            this.BufferSent = Encoding.UTF8.GetBytes(string.Format("{0}\x00", Messages));
+            args.SetBuffer(this.BufferSent, 0, this.BufferSent.Length);
+            Array.Clear(this.BufferSent, 0, 0);
      
             
             Sock.SendAsync(args);

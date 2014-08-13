@@ -1,5 +1,5 @@
 ﻿~Game_Ip 127.0.0.1;
-~Game_Port 4444;
+~Game_Port 444;
 ~Max_co 100;
 
 ~Server localhost;

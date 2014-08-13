@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace yEmu.Util
 {
-    class Algorithme
+   public class Algorithme
     {
         public static string GenerateRandomName()
         {

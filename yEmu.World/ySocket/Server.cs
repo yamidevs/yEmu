@@ -28,7 +28,7 @@ namespace yEmu.Network
 
         public abstract Client CreateClient(Socket sock , Server server);
 
-        public  ConcurrentList<Client> Clients
+        public static List<Client> Clients
         {
             get;
             set;
@@ -98,7 +98,7 @@ namespace yEmu.Network
 
         public Server()
         {
-            Clients = new ConcurrentList<Client>();
+            Clients = new List<Client>();
         }
         public  void Start()
         {
@@ -182,8 +182,9 @@ namespace yEmu.Network
             SocketAsyncEventArgs saea = new SocketAsyncEventArgs();
              Client client = CreateClient(args.AcceptSocket,this);
 
+             lock (Clients)
+               Clients.Add(client);
 
-             Clients.Add(client);
                 client.Receive();
                 StartAccept(args);                          
         }
@@ -197,7 +198,11 @@ namespace yEmu.Network
 
         public void RemoveClient(Client client)
         {
-            Clients.Remove(client);
+            lock (Clients)
+            {
+                Clients.Remove(client);
+
+            }
         }
 
         public void RemoveAllClient()
@@ -223,7 +228,7 @@ namespace yEmu.Network
 
         public int CountIP(IPAddress ipAddress)
         {
-            return Enumerable.Count<Client>((IEnumerable<Client>)this.Clients, (Func<Client, bool>)(t => t.Sock != null && t.Sock.Connected && ((object)((IPEndPoint)t.Sock.RemoteEndPoint).Address).Equals((object)ipAddress)));
+            return Enumerable.Count<Client>((IEnumerable<Client>)Server.Clients, (Func<Client, bool>)(t => t.Sock != null && t.Sock.Connected && ((object)((IPEndPoint)t.Sock.RemoteEndPoint).Address).Equals((object)ipAddress)));
         }
 
 		~Server()

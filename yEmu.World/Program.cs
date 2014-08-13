@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using yEmu.Network;
 using yEmu.Util;
+using yEmu.World.Core.Classes.Accounts;
 using yEmu.World.Core.Databases.Requetes;
 using yEmu.World.InterCommunication;
 
@@ -28,8 +29,13 @@ namespace yEmu.World
             try
             {
                 Servers.Instance.Load();
-                Accounts.Instance.Load();
+                Account.Instance.Load();
+                Map.Instance.Load();
+                Trigger.Instance.Load();
                 Character.Instance.Load();
+
+
+             //   CharactersAccount.Instance.Load();
             }
             catch (Exception e)
             {
@@ -46,13 +52,15 @@ namespace yEmu.World
             InterCommunication.Initialize("127.0.0.1", 3450);
 
             Time.Stop();
-
+    
             GC.Collect();
             GC.WaitForFullGCComplete();
 
             Console.WriteLine("Time : {0} secondes", Time.Elapsed.TotalSeconds.ToString(CultureInfo.InvariantCulture).Substring(0, 4));
 
             Console.ReadLine();
+        
+
         }
     }
 }

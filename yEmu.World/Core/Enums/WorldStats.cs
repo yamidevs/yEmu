@@ -9,6 +9,8 @@ namespace yEmu.World.Core.Enums
     public enum WorldStats
     {
         Parse,
-        Personnages
+        Personnages,
+        CreateGame,
+        InGame
     }
 }
