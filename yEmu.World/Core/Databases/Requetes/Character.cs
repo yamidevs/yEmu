@@ -25,7 +25,13 @@ namespace yEmu.World.Core.Databases.Requetes
                 foreach (var result in results)
                 {
                     result.Maps = Map.Maps.Find(x => x.ID == result.MapId);
-                    characters.Add(result);
+                    result.Stats = Character_Stats.Characters_stats.Find(x => x.id == result.statsId);
+                    result.Alignment = Alignment.Alignments.Find(x => x.Id == result.alignmentId);
+
+                    lock (characters)
+                    {
+                        characters.Add(result);
+                    }
                 }
             }
             Info.Write("database", string.Format("{0} Characters chargés", characters.Count()), ConsoleColor.Green);
@@ -37,7 +43,7 @@ namespace yEmu.World.Core.Databases.Requetes
             {
                 connection.Execute("INSERT INTO personnages SET id=@id, nom=@nom,sexe = @sexe,Classes=@Classes,"+
                 "color1 = @color1 , color2 = @color2 , color3 = @color3 , accounts = @accounts , skin = @skin, "+
-                "level = @level  , MapId = @MapId , CellId = @CellId , Direction =  @Direction , ServerId = @ServerId",
+                "level = @level  , MapId = @MapId , CellId = @CellId , Direction =  @Direction , ServerId = @ServerId,pdvNow=@pdvNow,alignmentId=@alignmentId",
                     new {
                         id = characters.id ,
                         nom = characters.nom,
@@ -52,7 +58,9 @@ namespace yEmu.World.Core.Databases.Requetes
                         MapId = characters.Maps.ID,
                         CellId = characters.CellId,
                         Direction = characters.Direction,
-                        ServerId = Servers.ServerId
+                        ServerId = Servers.ServerId,
+                        pdvNow = characters.pdvNow,
+                        alignmentId = characters.alignmentId
                         });                         
             }
             lock (Character.characters)

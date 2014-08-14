@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ngot.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -30,6 +31,7 @@ namespace yEmu.Network
             get;
             set;
         }
+     
         public AuthClient(Socket socket, Server server)
             : base(socket, server)
         {
@@ -42,13 +44,18 @@ namespace yEmu.Network
         {
             base.Characters = Character;
         }
-        public override bool DataArriavls(byte[] data)
+        public void Clear()
         {
+            base.Characters = null;
+        }
+        public override bool DataArriavls(BufferSegment data)
+        {
+            data.IncrementUsage();
             if (data.Length == 0)
             {
                 return false;
             }
-            foreach (var packet in Encoding.UTF8.GetString(data).Replace("\x0a", "").Split('\x00').Where(x => x != ""))
+            foreach (var packet in Encoding.UTF8.GetString(data.SegmentData).Replace("\x0a", "").Split('\x00').Where(x => x != ""))
             {
                 Console.WriteLine("PACKET  : " + packet);
                 Processor.Parser(packet);

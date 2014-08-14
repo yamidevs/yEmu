@@ -32,10 +32,10 @@ namespace yEmu.World
                 Account.Instance.Load();
                 Map.Instance.Load();
                 Trigger.Instance.Load();
+                Experience.Instance.Load();
+                Character_Stats.Instance.Load();
+                Alignment.Instance.Load();
                 Character.Instance.Load();
-
-
-             //   CharactersAccount.Instance.Load();
             }
             catch (Exception e)
             {
@@ -43,13 +43,17 @@ namespace yEmu.World
             }
             IPAddress Ip = IPAddress.Parse(Configuration.getString("Game_Ip"));
 
+            
+
+
             IPEndPoint LocalEndPoint = new IPEndPoint(Ip, 5556);
             TCPServer app = new TCPServer(LocalEndPoint, 100);
-            app.Run();
 
             IPEndPoint InterCommunicationLocalEndPointRealm = new IPEndPoint(Ip, 3450);
             InterClient InterCommunication = new InterClient();
             InterCommunication.Initialize("127.0.0.1", 3450);
+            app.Run();
+ 
 
             Time.Stop();
     

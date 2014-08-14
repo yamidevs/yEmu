@@ -40,9 +40,37 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BufferPool\BufferPool.cs" />
+    <Compile Include="Buffer\ArrayBuffer.cs" />
+    <Compile Include="Buffer\BufferManager.cs" />
+    <Compile Include="Buffer\BufferSegment.cs" />
+    <Compile Include="Buffer\zzObjectPoolMgr.cs" />
     <Compile Include="Collections\ConcurrentList.cs" />
+    <Compile Include="Collections\IUpdatable.cs" />
+    <Compile Include="Collections\LockfreeQueue.cs" />
+    <Compile Include="Collections\SegmentStream.cs" />
+    <Compile Include="Collections\SelfRunningTaskQueue.cs" />
+    <Compile Include="Collections\SingleLinkNode.cs" />
+    <Compile Include="Collections\SocketHelpers.cs" />
+    <Compile Include="Collections\SynchronizedDictionary.cs" />
+    <Compile Include="Messages.cs" />
+    <Compile Include="ObjectPool\IContextHandler.cs" />
+    <Compile Include="ObjectPool\IObjectPool.cs" />
+    <Compile Include="ObjectPool\IPooledObject.cs" />
+    <Compile Include="ObjectPool\ObjectPool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reflection\Singleton.cs" />
+    <Compile Include="Timers\BucketTimer.cs" />
+    <Compile Include="Timers\OneShotActionTimer.cs" />
+    <Compile Include="Timers\OneShotTimer.cs" />
+    <Compile Include="Timers\RepeatingActionTimer.cs" />
+    <Compile Include="Timers\RepeatingTimer.cs" />
+    <Compile Include="Timers\TickedTimer.cs" />
+    <Compile Include="Timers\TickTimer.cs" />
+    <Compile Include="Timers\TimerBucket.cs" />
+    <Compile Include="Timers\TimerEntry.cs" />
+    <Compile Include="Timers\TimerPriority.cs" />
+    <Compile Include="Timers\TimerRunner.cs" />
+    <Compile Include="Utility.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

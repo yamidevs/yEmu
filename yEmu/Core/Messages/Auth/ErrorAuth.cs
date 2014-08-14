@@ -10,7 +10,7 @@ namespace yEmu.Realm.Packets.Auth
     {
         public override string ToString()
         {
-            return "AlEw";
+            return "AlEf";
         }
     }
 }

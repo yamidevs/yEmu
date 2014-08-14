@@ -57,5 +57,11 @@ namespace yEmu.Util
             }
             return true;
         }
+
+        public static string GetActualTime()
+        {
+            return string.Format("{0}{1}{2}{3}", (DateTime.Now.Hour * 3600000), (DateTime.Now.Minute * 60000),
+                (DateTime.Now.Second * 1000), DateTime.Now.Millisecond.ToString());
+        }
     }
 }

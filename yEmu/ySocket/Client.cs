@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Ngot.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using yEmu.Core.BufferPool;
 using yEmu.Realm;
@@ -13,16 +15,38 @@ namespace yEmu.Network
     public abstract class Client : IDisposable
     {
 
-        BufferPool<byte[]> myPool;
+        private uint _bytesReceived;
 
-        public abstract bool DataArriavls(byte[] data);
+        private static readonly BufferManager Buffers = BufferManager.Default;
+
+        private uint _bytesSent;
+
+        private static long _totalBytesReceived;
+
+        private static long _totalBytesSent;
+
+        public static long TotalBytesSent
+        {
+            get { return _totalBytesSent; }
+        }
+
+        public static long TotalBytesReceived
+        {
+            get { return _totalBytesReceived; }
+        }
+
+        protected BufferSegment _bufferSegment;
+
+        protected int _offset, _remainingLength;
+
+        public abstract bool DataArriavls(BufferSegment data);
 
         public  Server _server
         {
             get;
             set;
         }
-        public int sizeBuffer = 8192;
+        public int sizeBuffer = 1024;
 
         private object m_lock = new object();
 
@@ -40,66 +64,73 @@ namespace yEmu.Network
 
  
         protected Client(Socket _sock, Server server)
-        {
-            myPool = new BufferPool<byte[]>(() => new byte[sizeBuffer]);
-            myPool.Allocate(1);
-
+        {        
             this.Sock = _sock;
-
             _server = server;
+            _bufferSegment = Buffers.CheckOut();
+
         }
 
         public void Receive()
         {
+
             if (Sock != null || Sock.Connected)
             {
-     
-                var args = new SocketAsyncEventArgs();
 
+                var args = SocketHelpers.AcquireSocketArg();
+                var offset = _offset + _remainingLength;
 
-                    var buffer = myPool.Dequeue();
-                    args.SetBuffer(buffer, args.Offset, buffer.Length);
+                args.SetBuffer(_bufferSegment.Buffer.Array, _bufferSegment.Offset + offset, sizeBuffer - offset);
 
-                    Array.Clear(buffer, 0, 0);
-                    myPool.Enqueue(buffer);
+                args.UserToken = this;
+                args.Completed += ReceiveAsyncComplete;
 
-                    args.UserToken = this;
-                    args.Completed += ReceiveAsyncComplete;
+                var willRaiseEvent = Sock.ReceiveAsync(args);
 
-                    
-
-                    var willRaiseEvent = Sock.ReceiveAsync(args);
-                    if (!willRaiseEvent)
-                    {
-                        ProcessRecieve(args);
-                    }                    
+                if (!willRaiseEvent)
+                {
+                    ProcessRecieve(args);
                 }
-             }
-            
+            }
+        }
 
         private void ProcessRecieve(SocketAsyncEventArgs args)
         {
+
             try
             {
-                    var data = args.Buffer;
+                var bytesReceived = args.BytesTransferred;
 
-                    Array.Resize<byte>(ref data, args.BytesTransferred);
-
-                    if (args.BytesTransferred <= 0)
+                if (args.BytesTransferred == 0)
+                {
+                    Console.WriteLine("Deconnexion utilisateur");
+                    _server.Disconnect(this);
+                }
+                else
+                {
+                    unchecked
                     {
-                        Console.WriteLine("Deconnexion utilisateur");
-                        _server.Disconnect(this);
+                        _bytesReceived += (uint)bytesReceived;
+                    }
+
+                    Interlocked.Add(ref _totalBytesReceived, bytesReceived);
+
+                    _remainingLength += bytesReceived;
+
+                    if (this.DataArriavls(_bufferSegment))
+                    {
+                        _offset = 0;
+                        _bufferSegment.DecrementUsage();
+                        _bufferSegment = Buffers.CheckOut();
                     }
                     else
                     {
-                        if (this.DataArriavls(data))
-                        {
-
-                        }
-                        
-                        this.Receive();
+                        EnsureBuffer();
                     }
-                }                           
+
+                    this.Receive();
+                }
+            }
             catch (ObjectDisposedException)
             {
 
@@ -113,6 +144,24 @@ namespace yEmu.Network
             finally
             {
                 args.Completed -= ReceiveAsyncComplete;
+                SocketHelpers.ReleaseSocketArg(args);
+            }
+        }
+
+        protected void EnsureBuffer() //(int size)
+        {
+            //if (size > BufferSize - _offset)
+            {
+                // not enough space left in buffer: Copy to new buffer
+                var newSegment = Buffers.CheckOut();
+                Array.Copy(_bufferSegment.Buffer.Array,
+                    _bufferSegment.Offset + _offset,
+                    newSegment.Buffer.Array,
+                    newSegment.Offset,
+                    _remainingLength);
+                _bufferSegment.DecrementUsage();
+                _bufferSegment = newSegment;
+                _offset = 0;
             }
         }
 
@@ -126,31 +175,36 @@ namespace yEmu.Network
         {
             if (Sock != null && Sock.Connected)
             {
-            Console.WriteLine("Send  : " + Messages);
+                Console.WriteLine("Send  : " + Messages);
 
 
-            var args = new SocketAsyncEventArgs();
-            args.Completed += SendAsyncComplete;
-            args.UserToken = Messages;
+                var args = SocketHelpers.AcquireSocketArg();
+                if (args != null)
+                {
+                    args.Completed += SendAsyncComplete;
+                    args.UserToken = this;
 
-            var buffer = myPool.Dequeue();
+                    var packet = Encoding.UTF8.GetBytes(string.Format("{0}\x00", Messages));
+                    args.SetBuffer(packet, 0, packet.Length);
 
-            buffer = Encoding.UTF8.GetBytes(Messages + "\0");
-            args.SetBuffer(buffer, 0, buffer.Length);
-            Array.Clear(buffer, 0, 0);
+                    Sock.SendAsync(args);
+                    unchecked
+                    {
+                        _bytesSent += (uint)packet.Length;
+                    }
 
-            myPool.Enqueue(buffer);
-     
-            
-            Sock.SendAsync(args);
-
+                    Interlocked.Add(ref _totalBytesSent, packet.Length);
+                }
+                else
+                {
+                }
             }   
         }
 
         private  void SendAsyncComplete(object sender, SocketAsyncEventArgs args)
         {
-          args.Completed -= SendAsyncComplete;
-          args.Dispose();
+            args.Completed -= SendAsyncComplete;
+            SocketHelpers.ReleaseSocketArg(args);
         }
 
         public void Connect(string host, int port)

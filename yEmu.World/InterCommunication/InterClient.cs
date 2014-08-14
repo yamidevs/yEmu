@@ -33,11 +33,7 @@ namespace yEmu.World.InterCommunication
 
         private Socket Sock;
 
-        private static ManualResetEvent connectDone =  new ManualResetEvent(false);
 
-        private static ManualResetEvent sendDone    =  new ManualResetEvent(false);
-
-        private static ManualResetEvent receiveDone =  new ManualResetEvent(false);
 
         public void Initialize(string ip, int port)
         {
@@ -53,29 +49,27 @@ namespace yEmu.World.InterCommunication
             var remoteEndPoint = new IPEndPoint(IPAddress.Parse(Ip), Port);
             Thread.Sleep(1000);
             Sock.BeginConnect(remoteEndPoint, new AsyncCallback(ConnectCall), Sock);
-            connectDone.WaitOne();
+            Thread.Sleep(1000);
             if (Sock.Connected)
             {
+                Thread.Sleep(1000);
                 Send(string.Format("{0}{1}", "HR", "loool"));
             }
-            sendDone.WaitOne();
-
             Sock.BeginReceive(new byte[0], 0, 0, 0, CallBack, null);
-            receiveDone.WaitOne();
 
         }
         private void ConnectCall(IAsyncResult ar)
         {
             try
             {
-                Socket client = (Socket)ar.AsyncState;
 
+                Socket client = (Socket)ar.AsyncState;
+                Thread.Sleep(1000);
                 client.EndConnect(ar);
 
                 Info.Write("", string.Format(" Socket connected to  :  < {0} >", client.RemoteEndPoint.ToString()), ConsoleColor.White);
 
 
-                connectDone.Set();
             }
             catch 
             {
@@ -86,6 +80,7 @@ namespace yEmu.World.InterCommunication
         {
             try
             {
+                Thread.Sleep(1000);
                 Sock.EndReceive(ar);
                 byte[] buff = new byte[8192];
                 int rec = Sock.Receive(buff, buff.Length, 0);
@@ -98,6 +93,7 @@ namespace yEmu.World.InterCommunication
                     Disconnected();
                     return;
                 }
+                Thread.Sleep(1000);
                 Sock.BeginReceive(new byte[0], 0, 0, 0, CallBack, null);
             }
             catch (Exception)
@@ -114,7 +110,7 @@ namespace yEmu.World.InterCommunication
         public void Disconnected()
         {
             Sock.Close();
-            Connect();
+           // Connect();
         }
     }
 }

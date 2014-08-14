@@ -15,12 +15,13 @@ using yEmu.Util;
 using System.Text.RegularExpressions;
 using yEmu.World.Core.Classes.Characters;
 using yEmu.World.Core.Classes.Maps;
+using System.Runtime.CompilerServices;
 
 namespace yEmu.World.Core
 {
    public class Processor
     {
-
+       public static object Lock = new object();
        public  Dictionary<string, Action<string>> PacketHandler
        {
            get;
@@ -33,9 +34,17 @@ namespace yEmu.World.Core
             set;
         }
 
-       public static CharacterState CharacterStates;
+       public static CharacterState CharacterStates
+       {
+           get;
+           set;
+       }
 
-       public static WorldStats _stats;
+       public static WorldStats _stats
+       {
+           get;
+           set;
+       }
 
        public Processor(AuthClient client)
         {
@@ -66,17 +75,13 @@ namespace yEmu.World.Core
         {
             var header = packet.Substring(0, 2);
 
-            switch (_stats)
+            if (header == "AT")
             {
-                case WorldStats.Parse :
+                HandlerPacket.ReponseParse(packet.Substring(2));
+            }
 
-                    if (header == "AT")
-                    {
-                        HandlerPacket.ReponseParse(packet.Substring(2));
-                    }
-
-                    break;
-
+            switch (_stats)
+            {                  
                 case WorldStats.Personnages:
 
                     if (this.PacketHandler.ContainsKey(header))
@@ -111,20 +116,27 @@ namespace yEmu.World.Core
        [Packet("AL")]
        public static void ListCharacters(string data)
         {
-            var count = Character.characters.Count(x => x.accounts == Processor.Clients.Accounts.Id);
-            var personnages = Character.characters.Where(x => x.accounts == Processor.Clients.Accounts.Id).
-                Aggregate(string.Empty,
-                        (current, x) =>
-                            current + x.InfosCharacter());
-            Processor.Clients.Send(string.Format("{0}{1}|{2}{3}", "ALK", "31536000000", count, personnages));
+            lock (Processor.Lock)
+            {
+                var count = Character.characters.Count(x => x.accounts == Processor.Clients.Accounts.Id);
+                var personnages = Character.characters.Where(x => x.accounts == Processor.Clients.Accounts.Id).
+                    Aggregate(string.Empty,
+                            (current, x) =>
+                                current + x.InfosCharacter());
+                Processor.Clients.Send(string.Format("{0}{1}|{2}{3}", "ALK", "31536000000", count, personnages));
+            }
 
         }
 
        [Packet("AP")]
        public static void GeneratePseudo(string data)
         {
-            Processor.Clients.Send(string.Format("{0}{1}","APK",
-                Algorithme.GenerateRandomName()));
+            lock (Processor.Lock)
+            {
+                Processor.Clients.Send(string.Format("{0}{1}", "APK",
+                                Algorithme.GenerateRandomName()));
+            }
+            
        
         }
 
@@ -174,7 +186,7 @@ namespace yEmu.World.Core
                            level = int.Parse(Configuration.getString("Start_level")),
                            skin = int.Parse(classe + "" + sex),
                            accounts = Processor.Clients.Accounts.Id,
-                           PdvNow =
+                           pdvNow =
                                (int.Parse(Configuration.getString("Start_level")) - 1) * Characters.GainHpPerLvl + Characters.BaseHp,
                            PdvMax =
                                (int.Parse(Configuration.getString("Start_level")) - 1) * Characters.GainHpPerLvl + Characters.BaseHp,
@@ -226,10 +238,10 @@ namespace yEmu.World.Core
        [Packet("GI")]
        public static void MapsInfos(string data)
        {
-           Clients.Clients();
-           Processor.Clients.Character.Maps.Add(Processor.Clients.Character);
-           Processor.Clients.Character.Maps.Send(string.Format("{0}{1}", "GM", Processor.Clients.Character.Maps.DisplayChars()));
+           Processor.Clients.Character.GetMap().Add(Processor.Clients.Character);
+           Processor.Clients.Character.GetMap().Send(string.Format("{0}{1}", "GM", Processor.Clients.Character.GetMap().DisplayChars()));
            Processor.Clients.Send("GDK");
+
        }
 
        [Packet("GA")]
@@ -291,6 +303,37 @@ namespace yEmu.World.Core
                return;
            }
            Processor.Clients.Character.Maps.Send(string.Format("{0}{1}|{2}","cS", Processor.Clients.Character.id, data));
+       }
+
+       [Packet("BM")]
+       public static void Messages(string data)
+       {
+           var infos = data.Split('|');
+
+           var channel = infos[0];
+           var message = infos[1];
+
+           switch (channel)
+           {
+               case "*":
+                   HandlerPacket.GeneralMessages(message);
+                   return;
+
+               case "?":
+                   HandlerPacket.RecrutementMessages(message);
+                   break;
+
+               case ":":
+                   HandlerPacket.TradeMessages(message);
+                   break;
+
+               default :
+                   if (channel.Length > 1)
+                   {
+                       HandlerPacket.PrivateMessages(channel, message);
+                   }
+                   break;
+           }
        }
     }
 }

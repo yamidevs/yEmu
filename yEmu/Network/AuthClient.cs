@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ngot.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -38,14 +39,14 @@ namespace yEmu.Network
             Send(string.Format("{0}{1}", "HC", Key));
         }
 
-     
-        public override bool DataArriavls(byte[] data)
+
+        public override bool DataArriavls(BufferSegment data)
         {
             if (data.Length == 0)
             {
                 return false;
             }
-            foreach (var packet in Encoding.UTF8.GetString(data).Replace("\x0a", "").Split('\x00').Where(x => x != ""))
+            foreach (var packet in Encoding.UTF8.GetString(data.SegmentData).Replace("\x0a", "").Split('\x00').Where(x => x != ""))
             {
                 Console.WriteLine("PACKET  : " + packet);
                 Processor.Parser(packet);

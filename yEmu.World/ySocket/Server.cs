@@ -34,6 +34,12 @@ namespace yEmu.Network
             set;
         }
 
+        public static List<AuthClient> AuthClient
+        {
+            get;
+            set;
+        }
+
         public static int? IpMax = new int?(10);
 
         public virtual bool IsRun
@@ -99,6 +105,7 @@ namespace yEmu.Network
         public Server()
         {
             Clients = new List<Client>();
+            AuthClient = new List<AuthClient>();
         }
         public  void Start()
         {
@@ -185,12 +192,20 @@ namespace yEmu.Network
              lock (Clients)
                Clients.Add(client);
 
+             lock (AuthClient)
+                 AuthClient.Add((AuthClient)client);
+            
+
                 client.Receive();
                 StartAccept(args);                          
         }
 
         public void Disconnect(Client client)
         {
+            if (client.Characters != null)
+            {
+
+            }
             RemoveClient(client);
 
             client.Dispose();

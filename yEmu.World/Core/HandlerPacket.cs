@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using yEmu.Util;
 using yEmu.World.Core;
 using yEmu.World.Core.Classes.Accounts;
 using yEmu.World.Core.Classes.Characters;
@@ -16,27 +17,16 @@ namespace yEmu.World
 {
     public class HandlerPacket
     {
+        public static object  Lock = new Object();
         public static void ReponseParse(string data)
         {
+       
             var date = data.Split('|')[0];
 
             var ip = data.Split('|')[1];
             IPEndPoint Ip = Processor.Clients.Sock.RemoteEndPoint as IPEndPoint;
 
-            /* if (DateTime.ParseExact(date, "MM/dd/yyyy HH:mm:ss", null).AddSeconds(10) <
-                 DateTime.ParseExact(DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss"), "MM/dd/yyyy HH:mm:ss", null))
-             {
-                 this.Client.Send("M130");
-                 this.Client.Disconnect(Client);
-             }
-             else */
-            if (ip.Equals(Ip))
-            {
-                Processor.Clients.Send("M031");
-                Processor.Clients.Disconnect(Processor.Clients);
-            }
-            else
-            {
+
                 var account = data.Split('|')[2].Split(',');
                 try
                 {
@@ -68,7 +58,7 @@ namespace yEmu.World
 
                 Processor._stats = WorldStats.Personnages;
                 Processor.Clients.Send("ATK0");
-            }
+                       
         }
 
         public static void GameInfos()
@@ -79,8 +69,14 @@ namespace yEmu.World
             }
 
             Processor.Clients.Send(string.Format("{0}|1|{1}", "GCK", Processor.Clients.Character.nom));
+            Processor.Clients.Send(Processor.Clients.Character.GetStats());
             Processor.Clients.Send("AR6bk");
+            Processor.Clients.Character.Channels.Send();
+            Processor.Clients.Send("SLo+");
+            Processor.Clients.Send(string.Concat("BT", Info.GetActualTime()));
+
             Processor.Clients.Send(string.Format("{0}{1}", "Im", "189"));
+
             Processor.Clients.Send(string.Format("{0}|{1}|{2}|{3}", "GDM", Processor.Clients.Character.Maps.ID,
             Processor.Clients.Character.Maps.CreateTime, Processor.Clients.Character.Maps.DecryptKey));
             Processor._stats = WorldStats.InGame;
@@ -135,11 +131,12 @@ namespace yEmu.World
             var trigger =
                Trigger.Triggers.Find(
                    x => x.CellID == Processor.Clients.Character.CellId
-                        && x.MapID == Processor.Clients.Character.Maps.ID);
+                        && x.MapID == Processor.Clients.Character.GetMap().ID);
 
             if (trigger != null)
             {
                 HandlerPacket.Teleport(trigger.NewMap, trigger.NewCell);
+
             }
 
             Processor.Clients.Send("BN");
@@ -149,14 +146,18 @@ namespace yEmu.World
 
         public static void Teleport(int maps , int cell)
         {
-            Processor.Clients.Character.Maps.Remove(Processor.Clients.Character);
+
+            Processor.Clients.Character.GetMap().Remove(Processor.Clients.Character);
+
             Processor.Clients.Send(string.Format("{0};2;{1};", "GA", Processor.Clients.Character.id));
 
             Processor.Clients.Character.CellId = cell;
+
             Processor.Clients.Character.Maps = Map.Maps.Find(x => x.ID == maps);
 
             Processor.Clients.Send(string.Format("{0}|{1}|{2}|{3}", "GDM", Processor.Clients.Character.Maps.ID,
             Processor.Clients.Character.Maps.CreateTime, Processor.Clients.Character.Maps.DecryptKey));
+
         }
 
         public static void ChangeDestination(string data)
@@ -180,5 +181,64 @@ namespace yEmu.World
                 Processor.Clients.Character.CellId = cell;
             }
         }
+
+        #region Partie Chat
+
+        public static void GeneralMessages(string data)
+        {
+            if (Processor.Clients.Character.Maps == null)
+            {
+                return;
+            }
+            if (data.Substring(0, 1) == ".")
+            {
+                Console.WriteLine("une commande");
+            }
+            Processor.Clients.Character.Maps.Send(string.Format("cMK|{0}|{1}|{2}", Processor.Clients.Character.id, Processor.Clients.Character.nom, data));
+        }
+
+        public static void RecrutementMessages(string data)
+        {
+            if(Processor.Clients.Character.CantRecrutement() == true)
+            {
+                Processor.Clients.Character.Maps.Send(string.Format("cMK?|{0}|{1}|{2}", Processor.Clients.Character.id, Processor.Clients.Character.nom, data));
+                Processor.Clients.Character.RefreshRecrutement();
+            }
+            else
+            {
+                Processor.Clients.Send(string.Concat("Im0115;", Processor.Clients.Character.TimeRecrutement()));
+            }
+        }
+
+        public static void TradeMessages(string data)
+        {
+            if (Processor.Clients.Character.CantTrade() == true)
+            {
+                Processor.Clients.Character.Maps.Send(string.Format("cMK:|{0}|{1}|{2}", Processor.Clients.Character.id, Processor.Clients.Character.nom, data));
+                Processor.Clients.Character.RefreshTrade();
+            }
+            else
+            {
+                Processor.Clients.Send(string.Concat("Im0115;", Processor.Clients.Character.TimeTrade()));
+            }
+
+        }
+
+        public static void PrivateMessages(string receive , string messages)
+        {
+            if (Character.characters.Any(x => x.nom == receive) && receive != null)
+            {
+                var character = Character.characters.First(x => x.nom == receive);
+                character.Send(string.Format("cMKF|{0}|{1}|{2}", Processor.Clients.Character.id, Processor.Clients.Character.nom, messages));
+
+                Processor.Clients.Send(string.Format("cMKT|{0}|{1}|{2}", Processor.Clients.Character.id,character.nom, messages));
+            }
+            else
+            {
+                Processor.Clients.Send(string.Concat("cMEf", receive));
+            }
+        }
+
+        #endregion
     }
 }
