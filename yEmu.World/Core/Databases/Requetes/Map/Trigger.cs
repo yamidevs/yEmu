@@ -14,6 +14,7 @@ namespace yEmu.World.Core.Databases.Requetes
 {
     public class Trigger : Singleton<Trigger>
     {
+        public Object Lock = new Object();
         public static readonly List<Triggers> Triggers = new List<Triggers>();
 
         public void Load()
@@ -23,10 +24,12 @@ namespace yEmu.World.Core.Databases.Requetes
 
                 var results = connection.Query<Triggers>("SELECT * FROM  maps_triggers");
 
-                foreach (var result in results)
+                Parallel.ForEach(results, result => 
                 {
+                    lock(Lock)
                     Triggers.Add(result);
-                }
+                });
+
             }
             Info.Write("database", string.Format("{0} Triggers chargés", Triggers.Count()), ConsoleColor.Green);
         }

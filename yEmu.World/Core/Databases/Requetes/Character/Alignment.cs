@@ -13,6 +13,7 @@ namespace yEmu.World.Core.Databases.Requetes
 {
     public class Alignment : Singleton<Alignment>
     {
+        private object Lock = new object();
         public static List<Alignments> Alignments = new List<Alignments>();
 
         public void Load()
@@ -21,13 +22,13 @@ namespace yEmu.World.Core.Databases.Requetes
             {
                 var results = connection.Query<Alignments>("SELECT * FROM alignments");
 
-                foreach (var result in results)
+                Parallel.ForEach(results, result =>
                 {
+                    lock (Lock)
+                        Alignments.Add(result);
+                });
 
-                    Alignments.Add(result);
-                }
-
-                Info.Write("database", string.Format("{0} Aligenements chargés", Alignments.Count()), ConsoleColor.Green);
+                Info.Write("database", string.Format("{0} Aligenments chargés", Alignments.Count()), ConsoleColor.Green);
             }
         }
 

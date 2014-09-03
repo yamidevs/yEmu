@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using yEmu.Realm;
@@ -18,7 +19,7 @@ namespace yEmu.Network.Realm
             get;
             set;
         }
-       
+        private static ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
         private static System.Timers.Timer timer;
        
         private static bool _run;
@@ -57,19 +58,31 @@ namespace yEmu.Network.Realm
 
         public static void OnTimedEvent(object sender, EventArgs e)
         {
-            if (Clients.Count <= 0)
-                return;
-            Clients[0].SendInformations();
-            Clients[0].VerifRealm = RealmStats.Server;
 
-            lock (Clients)
-                Clients.Remove(Clients[0]);
-
-            if (Clients.Count <= 0)
+            cacheLock.EnterReadLock(); 
+            try
             {
-                _run = false;
-                timer.Stop();
+                if (Clients.Count <= 0)
+                    return;
+
+                Clients[0].SendInformations();
+                Clients[0].VerifRealm = RealmStats.Server;
+
+                lock (Clients)
+                    Clients.Remove(Clients[0]);
+
+                if (Clients.Count <= 0)
+                {
+                    _run = false;
+                    timer.Stop();
+                }
             }
+            finally
+            {
+                cacheLock.ExitReadLock();
+            }
+            
+           
         }
     }
 }

@@ -13,6 +13,7 @@ namespace yEmu.World.Core.Databases.Requetes
 {
     public class Experience : Singleton<Experience>
     {
+        private object Lock = new object();
         public static List<Experiences> Experiences = new List<Experiences>();
 
         public void Load()
@@ -23,6 +24,7 @@ namespace yEmu.World.Core.Databases.Requetes
 
                 foreach (var result in results)
                 {
+                    lock(Lock)
                     Experiences.Add(result);
                 }
             }

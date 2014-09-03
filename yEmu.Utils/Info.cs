@@ -63,5 +63,15 @@ namespace yEmu.Util
             return string.Format("{0}{1}{2}{3}", (DateTime.Now.Hour * 3600000), (DateTime.Now.Minute * 60000),
                 (DateTime.Now.Second * 1000), DateTime.Now.Millisecond.ToString());
         }
+
+        public static string DeciToHex(int decimalNumber)
+        {
+            return decimalNumber == -1 ? "-1" : decimalNumber.ToString("x");
+        }
+
+        public static int HexToDeci(string hexaDecimalNumber)
+        {
+            return hexaDecimalNumber == "" || hexaDecimalNumber == "-1" ? -1 : Convert.ToInt32(hexaDecimalNumber, 16);
+        }
     }
 }

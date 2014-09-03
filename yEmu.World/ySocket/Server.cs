@@ -22,8 +22,6 @@ namespace yEmu.Network
 
         protected bool _run;
 
-        public static int BufferSize = 8192;
-
         protected IPEndPoint AdderssPort;
 
         public abstract Client CreateClient(Socket sock , Server server);

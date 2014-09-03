@@ -52,8 +52,5 @@ namespace yEmu.Util
             return crypted;
         }
       
-
-
-
     }
 }

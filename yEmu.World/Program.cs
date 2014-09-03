@@ -11,6 +11,9 @@ using yEmu.Network;
 using yEmu.Util;
 using yEmu.World.Core.Classes.Accounts;
 using yEmu.World.Core.Databases.Requetes;
+using yEmu.World.Core.Databases.Requetes.Mount;
+using yEmu.World.Core.Databases.Requetes.NPC;
+using yEmu.World.Core.Databases.Requetes.Zaap;
 using yEmu.World.InterCommunication;
 
 namespace yEmu.World
@@ -26,8 +29,7 @@ namespace yEmu.World
             Info.Start();
             Configuration.LoadConfiguration();
 
-            try
-            {
+            
                 Servers.Instance.Load();
                 Account.Instance.Load();
                 Map.Instance.Load();
@@ -36,11 +38,15 @@ namespace yEmu.World
                 Character_Stats.Instance.Load();
                 Alignment.Instance.Load();
                 Character.Instance.Load();
-            }
-            catch (Exception e)
-            {
-                Info.Write("ERROR", "CHargement de database : " + e.Message, ConsoleColor.Red);
-            }
+                ItemsInfo.Instance.Load();
+                ItemSet.Instance.Load();
+                InventoryItem.Instance.Load();
+                NPCTemplate.Instance.Load();
+                Npc.Instance.Load();
+                Zaap.Instance.Load();
+                Zaapi.Instance.Load();
+                MountPark.Instance.Load();
+
             IPAddress Ip = IPAddress.Parse(Configuration.getString("Game_Ip"));
 
             

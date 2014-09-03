@@ -33,7 +33,7 @@ namespace yEmu.World.Core.Enums
         FIGHT_USEWEAPON_ECHEC = 305,
         FIGHT_DODGE_SUBPA = 308,
         FIGHT_DODGE_SUBPM = 309,
-
+        MountPark = 175,
         BASIC_REQUEST,
         GUILD_CREATE,
     }

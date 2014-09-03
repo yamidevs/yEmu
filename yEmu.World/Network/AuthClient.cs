@@ -35,19 +35,12 @@ namespace yEmu.Network
         public AuthClient(Socket socket, Server server)
             : base(socket, server)
         {
-            Processor  = new Processor(this);
+            Processor = new Processor(this);
+            Character = new Characters(this);
             Send("HG");
 
         }
-
-        public void Clients()
-        {
-            base.Characters = Character;
-        }
-        public void Clear()
-        {
-            base.Characters = null;
-        }
+     
         public override bool DataArriavls(BufferSegment data)
         {
             data.IncrementUsage();

@@ -14,6 +14,7 @@ namespace yEmu.World.Core.Databases.Requetes
 {
     class Character : Singleton<Character>
     {
+        private object Lock = new object();
         public static List<Characters> characters = new List<Characters>();
 
         public void Load()
@@ -22,18 +23,33 @@ namespace yEmu.World.Core.Databases.Requetes
             {
                 var results = connection.Query<Characters>("SELECT * FROM personnages");
 
-                foreach (var result in results)
+                Parallel.ForEach(results, result =>
                 {
                     result.Maps = Map.Maps.Find(x => x.ID == result.MapId);
                     result.Stats = Character_Stats.Characters_stats.Find(x => x.id == result.statsId);
                     result.Alignment = Alignment.Alignments.Find(x => x.Id == result.alignmentId);
 
-                    lock (characters)
+                    if (result.savezaap.Contains('|'))
+                    {
+                        var id = result.savezaap.Split('|');
+
+                        foreach (var item in id)
+                        {
+                            if (item.Length >= 1)
+                            {
+                                Characters.PacketZaap.Add(int.Parse(item));
+                            }
+                        }
+                    }
+
+                    lock (Lock)
                     {
                         characters.Add(result);
                     }
-                }
+                });                
+                
             }
+            
             Info.Write("database", string.Format("{0} Characters chargés", characters.Count()), ConsoleColor.Green);
         }
 

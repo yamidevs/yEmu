@@ -9,11 +9,9 @@ namespace yEmu.World.Core.Classes
     public class Channels
     {
         public List<Channel> Chans { get; set; }
-        public yEmu.World.Core.Classes.Characters.Characters Client { get; set; }
 
         public Channels()
         {
-
             Chans = new List<Channel>();
 
             Add('*', true);
@@ -34,18 +32,19 @@ namespace yEmu.World.Core.Classes
                 Chans.Add(new Channel(head, state));
         }
 
-        public void Send()
+        public string Send()
         {
-            Processor.Clients.Send(string.Concat("cC+", string.Join("", from c in Chans select c.Head.ToString())));
+            return string.Concat("cC+", string.Join("", from c in Chans select c.Head.ToString()));
         }
 
-        public void Change(char head, bool state)
+        public string Change(char head, bool state)
         {
             if (Chans.Any(x => x.Head == head))
             {
                 Chans.First(x => x.Head == head).On = state;
-                Processor.Clients.Send(string.Format("cC{0}{1}", (state ? "+" : "-"), head.ToString()));
+                return string.Format("cC{0}{1}", (state ? "+" : "-"), head.ToString());
             }
+            return "";
         }
 
 

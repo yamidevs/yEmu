@@ -5,49 +5,90 @@ using System.Text;
 using System.Threading.Tasks;
 using yEmu.Collections;
 using yEmu.Network;
+using yEmu.World.Core.Classes.Npc;
 using yEmu.World.Core.Databases.Requetes;
+using yEmu.World.Core.Databases.Requetes.Mount;
 
 namespace yEmu.World.Core.Classes.Maps
 {
     public class Maps_data
     {
         public int ID { get; set; }
-        public SByte Width { get; set; } 
+        public SByte Width { get; set; }
+        public int PosX { get; set; }
+        public int PosY { get; set; }
         public string DecryptKey { get; set; }
         public string CreateTime { get; set; }
         public string MapData { get; set; }
-        private static  List<yEmu.World.Core.Classes.Characters.Characters> Characters = new List<yEmu.World.Core.Classes.Characters.Characters>();
+        private static List<yEmu.World.Core.Classes.Characters.Characters> Characters = new List<yEmu.World.Core.Classes.Characters.Characters>();
         public List<int> Cells = new List<int>();
 
-        public void Add(yEmu.World.Core.Classes.Characters.Characters character)
+        public Maps_data()
+        {
+        }
+
+        public void Add(AuthClient AuthClient, yEmu.World.Core.Classes.Characters.Characters character)
         {
             lock (Characters)
                 Characters.Add(character);
-        }
 
-        public  void Send(string data)
-        {
+            if (yEmu.World.Core.Databases.Requetes.NPC.Npc.Npcs.FindAll(x => x.mapid == ID).Count >= 1)
+            {
+                Send(AuthClient, string.Concat("GM", NPCsPattern()));
+            }
+            if (MountPark.MountParks.Any(x => x.mapid == ID))
+            {
+                Send(AuthClient, MountParkPattern());
+
+            }
             
-              var maps = Characters.Where(x => x.Maps.ID == Processor.Clients.Character.Maps.ID).ToList();
-              maps.Find(x => x.id == Processor.Clients.Character.id).Send(data);
-                       
         }
 
-        public  string DisplayChars()
+        public void Send(AuthClient AuthClient ,string data)
         {
-            var characters = Characters.Where(x => x.Maps.ID == Processor.Clients.Character.Maps.ID).ToList();
+            var maps = Characters.Where(x => x.Maps.ID == AuthClient.Character.Maps.ID).ToList();
+            foreach (var result in maps)
+            {
+                var client = Server.AuthClient.Find(x => x.Character == result);
+                client.Send(data);
+            }
+                                   
+        }
+
+        public string DisplayChars(AuthClient AuthClient)
+        {
+            var characters = Characters.Where(x => x.Maps.ID == AuthClient.Character.Maps.ID).ToList();
             return characters.Aggregate(string.Empty, (current, character) => current + string.Format("|+{0}", character.DisplayChar()));
         }
 
-        public void Remove(yEmu.World.Core.Classes.Characters.Characters character)
+        public void Remove(AuthClient AuthClient, yEmu.World.Core.Classes.Characters.Characters character)
         {
-            Send(string.Format("{0}|-{1}", "GM", character.id));
+            Send(AuthClient,string.Format("{0}|-{1}", "GM", character.id));
+
             lock (Characters)
                 Characters.Remove(character);
-
-
         }
 
+        private string NPCsPattern()
+        {
+            return string.Concat("|+", string.Join("|+", from n in yEmu.World.Core.Databases.Requetes.NPC.Npc.Npcs.FindAll(x => x.mapid == ID) select n.Pattern()));
+        }
+
+        private string MountParkPattern()
+        {
+            var MountParks = MountPark.MountParks.Find(x => x.mapid == ID);
+            var packet = new StringBuilder("Rp");
+            packet.Append(MountParks.owner);
+            packet.Append(";");
+            packet.Append(MountParks.price);
+            packet.Append(";");
+            packet.Append(MountParks.size);
+            packet.Append(";");
+            packet.Append(0);
+            packet.Append(";;");
+
+            return packet.ToString();
+        }
         #region PathFinding
         public List<int> UncompressDatas()
         {

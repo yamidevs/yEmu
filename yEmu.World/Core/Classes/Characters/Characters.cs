@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using yEmu.Network;
 using yEmu.Util;
+using yEmu.World.Core.Classes.Items;
 using yEmu.World.Core.Classes.Maps;
 using yEmu.World.Core.Databases.Requetes;
 using yEmu.World.Core.Enums;
@@ -40,8 +42,13 @@ namespace yEmu.World.Core.Classes.Characters
         public Channels Channels { get; set; }
         public int alignmentId { get; set; }
         public int Energy { get; set; }
-
+        public object BStats = new object();
+        public int Npc { get; set; }
         public Client Clients { get; set; }
+        public string savezaap { get; set; }
+
+        public bool Exchange { get; set; }
+        public static List<int> PacketZaap = new List<int>();
 
         private long _time_Recrutement;
         private long _time_Trade;
@@ -49,13 +56,29 @@ namespace yEmu.World.Core.Classes.Characters
         public const int BaseHp = 50;
         public const int GainHpPerLvl = 5;
 
+        public Characters CharacterExchange { get; set; }
+
+        public AuthClient AuthClient { get; set; }
         public static List<GameAction> Actions = new List<GameAction>();
+
+        private ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
+        private object _lock = new object();
+
+        public Party Party { get; set; }
+        public bool Connected { get; set; }
+
+        public bool party { get; set; }
+
+        public int SendParty { get; set; }
+        public int ReceiveParty { get; set; }
+        public bool WaitParty { get; set; }
 
         #region proprieter
         public int Initiative
         {
             get
             {
+               
                 var initiative = 0;
 
                 initiative += level + Stats.Initiative.Totals();
@@ -114,11 +137,17 @@ namespace yEmu.World.Core.Classes.Characters
         #endregion
 
         #region ctor
+        public Characters(AuthClient authClient)
+        {
+            AuthClient = authClient;
+        }
         public Characters()
         {
             Channels = new Channels();
+            Maps =  new Maps_data();
             _time_Recrutement = 0;
             _time_Trade = 0;
+
         }
         #endregion
 
@@ -208,10 +237,85 @@ namespace yEmu.World.Core.Classes.Characters
 
         public string SelectedCharacters()
         {
-            return String.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}|{8};",
+            var itemInventory = InventoryItem.Inventory.FindAll(x => x.IDCharacter.id == id);
+
+            var items = itemInventory.Aggregate(String.Empty,
+                (current, inventoryItem) => string.Format("{0}{1};", current, inventoryItem.ItemInfo()));
+
+            return String.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}|{8}|{9}|",
                 id,nom, level, Classes, sexe, skin, Algorithme.DeciToHex(color1), Algorithme.DeciToHex(color2),
-                Algorithme.DeciToHex(color3));
+                Algorithme.DeciToHex(color3),items);
         }
+
+        public void CalculateItemStats()
+        {
+            Stats.Calculate(this);
+        }
+
+        public string GetItems()
+        {
+            var items = new StringBuilder();
+            {
+
+                var inventoryItems = InventoryItem.Inventory.FindAll(x => x.IDCharacter.id == id);
+
+                if (inventoryItems.Count == 0)
+                    return ",,,,";
+
+                if (inventoryItems.Any(x => x.position == Position.Arme))
+                    items.Append(Info.DeciToHex(inventoryItems.Find(x => x.position == Position.Arme).IDItems.ID));
+
+                items.Append(",");
+
+                if (inventoryItems.Any(x => x.position == Position.Coiffe))
+                {
+
+
+                    if(inventoryItems.Find(x => x.position == Position.Coiffe).IDItems.ID == 9234)
+                    {
+                        items.Append(Info.DeciToHex(inventoryItems.Find(x => x.position == Position.Coiffe).IDItems.ID) + "~" + "16~1a3f");
+
+                    }
+                    else
+                    {
+                        items.Append(Info.DeciToHex(inventoryItems.Find(x => x.position == Position.Coiffe).IDItems.ID));
+                    }
+                    
+                   
+                }
+
+                items.Append(",");
+
+                if (inventoryItems.Any(x => x.position == Position.Cape))
+                    items.Append(Info.DeciToHex(inventoryItems.Find(x => x.position == Position.Cape).IDItems.ID));
+
+                items.Append(",");
+
+                if (inventoryItems.Any(x => x.position == Position.Familier))
+                    items.Append(Info.DeciToHex( inventoryItems.Find(x => x.position == Position.Familier).IDItems.ID));
+
+                items.Append(",");
+
+                if (inventoryItems.Any(x => x.position == Position.Bouclier))
+                    items.Append(Info.DeciToHex(inventoryItems.Find(x => x.position == Position.Bouclier).IDItems.ID));
+            }
+            return items.ToString();
+        }
+
+        public List<InventoryItems> GetAllItemsEquipedInSet(ItemSets itemSet)
+        {
+            return
+                InventoryItem.Inventory.FindAll(
+                    x => x.IDCharacter == this && x.IsEquiped() && x.IDItems.GetSet() == itemSet);
+          
+        }
+
+        public IEnumerable<ItemSets> GetSets()
+        {
+            var itemsInSet = InventoryItem.Inventory.FindAll(x => x.IDCharacter == this  && x.IsEquiped() && x.IDItems.HasSet());
+            return itemsInSet.Select(inventoryItem => ItemSet.Items.Find(x => x == inventoryItem.IDItems.GetSet())).Distinct();
+        }
+
         #endregion
 
         #region Information Personnages sur la maps
@@ -232,7 +336,7 @@ namespace yEmu.World.Core.Classes.Characters
                 Packet.Append(Algorithme.DeciToHex(color1)).Append(";");
                 Packet.Append(Algorithme.DeciToHex(color2)).Append(";");
                 Packet.Append(Algorithme.DeciToHex(color3)).Append(";");
-             //   builder.Append(GetItemsWheneChooseCharacter()).Append(";"); // Items
+                Packet.Append(GetItems()).Append(";"); // Items
                 Packet.Append((level >= 200 ? '2' : (level >= 100 ? '1' : '0'))).Append(';'); //Aura
                 Packet.Append("").Append(';'); // DisplayEmotes
                 Packet.Append("").Append(';'); // EmotesTimer
@@ -242,6 +346,26 @@ namespace yEmu.World.Core.Classes.Characters
             }
 
             return Packet.ToString();
+        }
+
+        public string PatternOnParty()
+        {
+            StringBuilder builder = new StringBuilder();
+            {
+                builder.Append(id).Append(";");
+                builder.Append(nom).Append(";");
+                builder.Append(skin).Append(";");
+                builder.Append(color1).Append(";");
+                builder.Append(color2).Append(";");
+                builder.Append(color3).Append(";");
+                builder.Append(GetItems()).Append(";");
+                builder.Append(pdvNow).Append(",").Append(MaxLife).Append(";");
+                builder.Append(level).Append(";");
+                builder.Append(Initiative).Append(";");
+                builder.Append(GetProspection).Append(";0");
+            }
+
+            return builder.ToString();
         }
 
         public string GetStats()
@@ -390,17 +514,704 @@ namespace yEmu.World.Core.Classes.Characters
 
         #endregion
 
-        
+        #region statsBoost
+
+        public void BoostStats(BaseStats stats)
+        {
+            switch (Classes)
+            {
+                case Class.Feca:
+                case Class.Xelor:
+                case Class.Eniripsa:
+                case Class.Osamodas:
+                    AddMageStats(stats);
+                    break;
+                case Class.Enutrof:
+                    AddEnuStats(stats);
+                    break;
+                case Class.Sram:
+                    AddSramStats(stats);
+                    break;
+                case Class.Iop:
+                    AddIopStats(stats);
+                    break;
+                case Class.Cra:
+                    AddCraStats(stats);
+                    break;
+                case Class.Ecaflip:
+                    AddEcaStats(stats);
+                    break;
+                case Class.Sadida:
+                    AddSadiStats(stats);
+                    break;
+                case Class.Sacrieur:
+                    AddSacriStats(stats);
+                    break;
+                case Class.Pandawa:
+                    AddPandaStats(stats);
+                    break;
+            }
+        }
+
+        private void AddGeneralStats(BaseStats stats, Func<int> intellAction, Func<int> chanceAction,
+            Func<int> agilityAction, Func<int> strengthAction)
+        {
+            lock (_lock)
+            {
+                switch (stats)
+                {
+                    case BaseStats.Vitality:
+                        const int statsPointVitalityBoost = 1;
+
+                        if (statsPoints >= statsPointVitalityBoost)
+                        {
+                            Stats.Vitality.Bases += Classes == Class.Sacrieur ? 3 : 1;
+                            pdvNow += Classes == Class.Sacrieur ? 3 : 1;
+                            PdvMax += Classes == Class.Sacrieur ? 3 : 1;
+                        }
+
+                        statsPoints -= statsPointVitalityBoost;
+                        break;
+                    case BaseStats.Wisdom:
+                        const int statsPointWisdomBoost = 3;
+
+                        if (statsPoints >= statsPointWisdomBoost)
+                            Stats.Wisdom.Bases += 1;
+
+                        statsPoints -= statsPointWisdomBoost;
+                        break;
+                    case BaseStats.Strength:
+                        var statsPointStrengthBoost = strengthAction();
+
+                        if (statsPoints >= statsPointStrengthBoost)
+                            Stats.Strenght.Bases += 1;
+
+                        statsPoints -= statsPointStrengthBoost;
+                        break;
+                    case BaseStats.Intelligence:
+                        var statsPointIntelligenceBoost = intellAction();
+
+                        if (statsPoints >= statsPointIntelligenceBoost)
+                            Stats.Intelligence.Bases += 1;
+
+                        statsPoints -= statsPointIntelligenceBoost;
+                        break;
+                    case BaseStats.Chance:
+                        var statsPointChanceBoost = chanceAction();
+
+                        if (statsPoints >= statsPointChanceBoost)
+                            Stats.Chance.Bases += 1;
+
+                        statsPoints -= statsPointChanceBoost;
+                        break;
+                    case BaseStats.Agility:
+                        var statsPointAgilityBoost = agilityAction();
+
+                        if (statsPoints >= statsPointAgilityBoost)
+                            Stats.Agility.Bases += 1;
+
+                        statsPoints -= statsPointAgilityBoost;
+                        break;
+                }
+            }
+        }
+
+        private void AddMageStats(BaseStats stats)
+        {
+            // Osamodas does not have the same Chance stats as other Mages (feca, xelor, eniripsa) So...
+
+            Func<int> normalMageChanceFunc = delegate
+            {
+                if (Stats.Chance.Bases <= 20)
+                    return 1;
+                if (Stats.Chance.Bases <= 40)
+                    return 2;
+                if (Stats.Chance.Bases <= 60)
+                    return 3;
+                if (Stats.Chance.Bases <= 80)
+                    return 4;
+                if (Stats.Chance.Bases >= 81)
+                    return 5;
+                return 0;
+            };
+
+            Func<int> osaChanceFunc = delegate
+            {
+                if (Stats.Chance.Bases <= 100)
+                    return 1;
+                if (Stats.Chance.Bases <= 200)
+                    return 2;
+                if (Stats.Chance.Bases <= 300)
+                    return 3;
+                if (Stats.Chance.Bases <= 400)
+                    return 4;
+                if (Stats.Chance.Bases >= 401)
+                    return 5;
+                return 0;
+            };
+
+            AddGeneralStats(stats,
+                () =>
+                {
+                    if (Stats.Intelligence.Bases <= 100)
+                        return 1;
+                    if (Stats.Intelligence.Bases <= 200)
+                        return 2;
+                    if (Stats.Intelligence.Bases <= 300)
+                        return 3;
+                    if (Stats.Intelligence.Bases <= 400)
+                        return 4;
+                    if (Stats.Intelligence.Bases >= 401)
+                        return 5;
+                    return 0;
+                },
+                Classes != Class.Osamodas
+                    ? normalMageChanceFunc
+                    : osaChanceFunc,
+                () =>
+                {
+                    if (Stats.Agility.Bases <= 20)
+                        return 1;
+                    if (Stats.Agility.Bases <= 40)
+                        return 2;
+                    if (Stats.Agility.Bases <= 60)
+                        return 3;
+                    if (Stats.Agility.Bases <= 80)
+                        return 4;
+                    if (Stats.Agility.Bases >= 81)
+                        return 5;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Strenght.Bases <= 50)
+                        return 2;
+                    if (Stats.Strenght.Bases <= 150)
+                        return 3;
+                    if (Stats.Strenght.Bases <= 250)
+                        return 4;
+                    if (Stats.Strenght.Bases >= 251)
+                        return 5;
+                    return 0;
+                });
+        }
+
+        private void AddEnuStats(BaseStats stats)
+        {
+            AddGeneralStats(stats,
+                () =>
+                {
+                    if (Stats.Intelligence.Bases <= 20)
+                        return 1;
+                    if (Stats.Intelligence.Bases <= 60)
+                        return 2;
+                    if (Stats.Intelligence.Bases <= 100)
+                        return 3;
+                    if (Stats.Intelligence.Bases <= 140)
+                        return 4;
+                    if (Stats.Intelligence.Bases >= 141)
+                        return 5;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Chance.Bases <= 100)
+                        return 1;
+                    if (Stats.Chance.Bases <= 150)
+                        return 2;
+                    if (Stats.Chance.Bases <= 230)
+                        return 3;
+                    if (Stats.Chance.Bases <= 330)
+                        return 4;
+                    if (Stats.Chance.Bases >= 331)
+                        return 5;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Agility.Bases <= 20)
+                        return 1;
+                    if (Stats.Agility.Bases <= 40)
+                        return 2;
+                    if (Stats.Agility.Bases <= 60)
+                        return 3;
+                    if (Stats.Agility.Bases <= 80)
+                        return 4;
+                    if (Stats.Agility.Bases >= 81)
+                        return 5;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Strenght.Bases <= 50)
+                        return 1;
+                    if (Stats.Strenght.Bases <= 150)
+                        return 2;
+                    if (Stats.Strenght.Bases <= 250)
+                        return 3;
+                    if (Stats.Strenght.Bases <= 350)
+                        return 4;
+                    if (Stats.Strenght.Bases >= 351)
+                        return 5;
+                    return 0;
+                });
+        }
+
+        private void AddSramStats(BaseStats stats)
+        {
+            AddGeneralStats(stats,
+                () =>
+                {
+                    if (Stats.Intelligence.Bases <= 50)
+                        return 2;
+                    if (Stats.Intelligence.Bases <= 150)
+                        return 3;
+                    if (Stats.Intelligence.Bases <= 250)
+                        return 4;
+                    if (Stats.Intelligence.Bases >= 251)
+                        return 5;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Chance.Bases <= 20)
+                        return 1;
+                    if (Stats.Chance.Bases <= 40)
+                        return 2;
+                    if (Stats.Chance.Bases <= 60)
+                        return 3;
+                    if (Stats.Chance.Bases <= 80)
+                        return 4;
+                    if (Stats.Chance.Bases >= 81)
+                        return 5;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Agility.Bases <= 100)
+                        return 1;
+                    if (Stats.Agility.Bases <= 200)
+                        return 2;
+                    if (Stats.Agility.Bases <= 300)
+                        return 3;
+                    if (Stats.Agility.Bases <= 400)
+                        return 4;
+                    if (Stats.Agility.Bases >= 401)
+                        return 5;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Strenght.Bases <= 100)
+                        return 1;
+                    if (Stats.Strenght.Bases <= 200)
+                        return 2;
+                    if (Stats.Strenght.Bases <= 300)
+                        return 3;
+                    if (Stats.Strenght.Bases <= 400)
+                        return 4;
+                    if (Stats.Strenght.Bases >= 401)
+                        return 5;
+                    return 0;
+                });
+        }
+
+        private void AddIopStats(BaseStats stats)
+        {
+            AddGeneralStats(stats,
+                () =>
+                {
+                    if (Stats.Intelligence.Bases <= 20)
+                        return 1;
+                    if (Stats.Intelligence.Bases <= 40)
+                        return 2;
+                    if (Stats.Intelligence.Bases <= 60)
+                        return 3;
+                    if (Stats.Intelligence.Bases <= 80)
+                        return 4;
+                    if (Stats.Intelligence.Bases >= 81)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Chance.Bases <= 20)
+                        return 1;
+                    if (Stats.Chance.Bases <= 40)
+                        return 2;
+                    if (Stats.Chance.Bases <= 60)
+                        return 3;
+                    if (Stats.Chance.Bases <= 80)
+                        return 4;
+                    if (Stats.Chance.Bases >= 81)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Agility.Bases <= 20)
+                        return 1;
+                    if (Stats.Agility.Bases <= 40)
+                        return 2;
+                    if (Stats.Agility.Bases <= 60)
+                        return 3;
+                    if (Stats.Agility.Bases <= 80)
+                        return 4;
+                    if (Stats.Agility.Bases >= 81)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Strenght.Bases <= 100)
+                        return 1;
+                    if (Stats.Strenght.Bases <= 200)
+                        return 2;
+                    if (Stats.Strenght.Bases <= 300)
+                        return 3;
+                    if (Stats.Strenght.Bases <= 400)
+                        return 4;
+                    if (Stats.Strenght.Bases >= 401)
+                        return 5;
+                    return 0;
+                });
+        }
+
+        private void AddCraStats(BaseStats stats)
+        {
+            AddGeneralStats(stats,
+                () =>
+                {
+                    if (Stats.Intelligence.Bases <= 50)
+                        return 1;
+                    if (Stats.Intelligence.Bases <= 150)
+                        return 2;
+                    if (Stats.Intelligence.Bases <= 250)
+                        return 3;
+                    if (Stats.Intelligence.Bases <= 350)
+                        return 4;
+                    if (Stats.Intelligence.Bases >= 351)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Chance.Bases <= 20)
+                        return 1;
+                    if (Stats.Chance.Bases <= 40)
+                        return 2;
+                    if (Stats.Chance.Bases <= 60)
+                        return 3;
+                    if (Stats.Chance.Bases <= 80)
+                        return 4;
+                    if (Stats.Chance.Bases >= 81)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Agility.Bases <= 50)
+                        return 1;
+                    if (Stats.Agility.Bases <= 100)
+                        return 2;
+                    if (Stats.Agility.Bases <= 150)
+                        return 3;
+                    if (Stats.Agility.Bases <= 200)
+                        return 4;
+                    if (Stats.Agility.Bases >= 201)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Strenght.Bases <= 50)
+                        return 1;
+                    if (Stats.Strenght.Bases <= 150)
+                        return 2;
+                    if (Stats.Strenght.Bases <= 250)
+                        return 3;
+                    if (Stats.Strenght.Bases <= 350)
+                        return 4;
+                    if (Stats.Strenght.Bases >= 351)
+                        return 4;
+                    return 0;
+                });
+        }
+
+        private void AddEcaStats(BaseStats stats)
+        {
+            AddGeneralStats(stats,
+                () =>
+                {
+                    if (Stats.Intelligence.Bases <= 20)
+                        return 1;
+                    if (Stats.Intelligence.Bases <= 40)
+                        return 2;
+                    if (Stats.Intelligence.Bases <= 60)
+                        return 3;
+                    if (Stats.Intelligence.Bases <= 80)
+                        return 4;
+                    if (Stats.Intelligence.Bases >= 81)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Chance.Bases <= 20)
+                        return 1;
+                    if (Stats.Chance.Bases <= 40)
+                        return 2;
+                    if (Stats.Chance.Bases <= 60)
+                        return 3;
+                    if (Stats.Chance.Bases <= 80)
+                        return 4;
+                    if (Stats.Chance.Bases >= 81)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Agility.Bases <= 50)
+                        return 1;
+                    if (Stats.Agility.Bases <= 100)
+                        return 2;
+                    if (Stats.Agility.Bases <= 150)
+                        return 3;
+                    if (Stats.Agility.Bases <= 200)
+                        return 4;
+                    if (Stats.Agility.Bases >= 201)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Strenght.Bases <= 100)
+                        return 1;
+                    if (Stats.Strenght.Bases <= 200)
+                        return 2;
+                    if (Stats.Strenght.Bases <= 300)
+                        return 3;
+                    if (Stats.Strenght.Bases <= 400)
+                        return 4;
+                    if (Stats.Strenght.Bases >= 401)
+                        return 4;
+                    return 0;
+                });
+        }
+
+        private void AddSadiStats(BaseStats stats)
+        {
+            AddGeneralStats(stats,
+                () =>
+                {
+                    if (Stats.Intelligence.Bases <= 100)
+                        return 1;
+                    if (Stats.Intelligence.Bases <= 200)
+                        return 2;
+                    if (Stats.Intelligence.Bases <= 300)
+                        return 3;
+                    if (Stats.Intelligence.Bases <= 400)
+                        return 4;
+                    if (Stats.Intelligence.Bases >= 401)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Chance.Bases <= 100)
+                        return 1;
+                    if (Stats.Chance.Bases <= 200)
+                        return 2;
+                    if (Stats.Chance.Bases <= 300)
+                        return 3;
+                    if (Stats.Chance.Bases <= 400)
+                        return 4;
+                    if (Stats.Chance.Bases >= 401)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Agility.Bases <= 20)
+                        return 1;
+                    if (Stats.Agility.Bases <= 40)
+                        return 2;
+                    if (Stats.Agility.Bases <= 60)
+                        return 3;
+                    if (Stats.Agility.Bases <= 80)
+                        return 4;
+                    if (Stats.Agility.Bases >= 81)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Strenght.Bases <= 100)
+                        return 1;
+                    if (Stats.Strenght.Bases <= 200)
+                        return 2;
+                    if (Stats.Strenght.Bases <= 300)
+                        return 3;
+                    if (Stats.Strenght.Bases <= 400)
+                        return 4;
+                    if (Stats.Strenght.Bases >= 401)
+                        return 4;
+                    return 0;
+                });
+        }
+
+        private void AddSacriStats(BaseStats stats)
+        {
+            AddGeneralStats(stats,
+                () =>
+                {
+                    if (Stats.Intelligence.Bases <= 100)
+                        return 3;
+                    if (Stats.Intelligence.Bases <= 150)
+                        return 4;
+                    if (Stats.Intelligence.Bases >= 151)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Chance.Bases <= 100)
+                        return 3;
+                    if (Stats.Chance.Bases <= 150)
+                        return 4;
+                    if (Stats.Chance.Bases >= 151)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Agility.Bases <= 100)
+                        return 3;
+                    if (Stats.Agility.Bases <= 150)
+                        return 4;
+                    if (Stats.Agility.Bases >= 151)
+                        return 4;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Strenght.Bases <= 100)
+                        return 3;
+                    if (Stats.Strenght.Bases <= 150)
+                        return 4;
+                    if (Stats.Strenght.Bases >= 151)
+                        return 4;
+                    return 0;
+                });
+        }
+
+        private void AddPandaStats(BaseStats stats)
+        {
+            AddGeneralStats(stats,
+                () =>
+                {
+                    if (Stats.Intelligence.Bases <= 50)
+                        return 1;
+                    if (Stats.Intelligence.Bases <= 200)
+                        return 2;
+                    if (Stats.Intelligence.Bases >= 201)
+                        return 3;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Chance.Bases <= 50)
+                        return 1;
+                    if (Stats.Chance.Bases <= 200)
+                        return 2;
+                    if (Stats.Chance.Bases >= 201)
+                        return 3;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Agility.Bases <= 50)
+                        return 1;
+                    if (Stats.Agility.Bases <= 200)
+                        return 2;
+                    if (Stats.Agility.Bases >= 201)
+                        return 3;
+                    return 0;
+                },
+                () =>
+                {
+                    if (Stats.Strenght.Bases <= 50)
+                        return 1;
+                    if (Stats.Strenght.Bases <= 200)
+                        return 2;
+                    if (Stats.Strenght.Bases >= 201)
+                        return 3;
+                    return 0;
+                });
+        }
+
+        public int GetMaxWeight()
+        {
+
+            return 1000 + Stats.Weight.Items + Stats.Strenght.Totals() * 5;
+        }
+
+        public int GetCurrentWeight()
+        {
+
+            return
+                InventoryItem.Inventory.FindAll(x => x.IDCharacter == this)
+                    .Sum(inventoryItem => inventoryItem.IDItems.Weight * inventoryItem.quantity);
+
+        }
+
+        public enum BaseStats
+        {
+            Strength = 10,
+            Vitality = 11,
+            Wisdom = 12,
+            Chance = 13,
+            Agility = 14,
+            Intelligence = 15,
+        }
+
+        #endregion
+
+        #region Items
+
+        public bool CheckAnneau(ItemSets itemSet)
+        {
+            cacheLock.EnterReadLock();
+
+            try
+            {
+                return InventoryItem.Inventory.Any(
+                                x =>
+                                    x.IDCharacter == this && x.IsEquiped() &&
+                                    (x.position == Position.Anneau1 ||
+                                     x.position == Position.Anneau2) &&
+                                    x.IDItems.GetSet() == itemSet);
+            }
+            finally
+            {
+                cacheLock.ExitReadLock();
+            }
+            
+        }
+
+        #endregion
+
         public void Disconnected()
         {
             if (this.Maps != null)
-                this.Maps.Remove(this);
+                this.Maps.Remove(AuthClient,this);
 
            // Processor.CharacterStates = CharacterState.Free;
         }
-        public void Send(string data)
+
+        public void Send(AuthClient AuthClients, string data)
         {
-            Processor.Clients.Send(data);
+            AuthClients.Send(data);
         }
 
     }

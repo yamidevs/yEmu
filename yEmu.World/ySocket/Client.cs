@@ -148,7 +148,7 @@ namespace yEmu.Network
                     args.Completed -= ReceiveAsyncComplete;
                     SocketHelpers.ReleaseSocketArg(args);
             }
-         }
+          }
         
 
         private void ReceiveAsyncComplete(object sender, SocketAsyncEventArgs args)

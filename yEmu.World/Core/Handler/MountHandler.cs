@@ -4,9 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace yEmu.Messages
+namespace yEmu.World.Core.Handler
 {
-    public class Class1
+    class MountHandler
     {
+        public void EnclosReceive(string data)
+        {
+
+        }
     }
 }

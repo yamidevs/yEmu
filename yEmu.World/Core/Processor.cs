@@ -16,60 +16,87 @@ using System.Text.RegularExpressions;
 using yEmu.World.Core.Classes.Characters;
 using yEmu.World.Core.Classes.Maps;
 using System.Runtime.CompilerServices;
+using yEmu.World.Core.Classes.Items;
+using yEmu.World.Core.Classes.Items.Stats;
+using yEmu.World.Core.Handler;
+using System.Threading;
 
 namespace yEmu.World.Core
 {
    public class Processor
     {
        public static object Lock = new object();
+       private ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
+
        public  Dictionary<string, Action<string>> PacketHandler
        {
            get;
           private set;
        }
  
-       public static AuthClient  Clients
+       public  AuthClient  Clients
         {
             get;
             set;
         }
 
-       public static CharacterState CharacterStates
+       public  CharacterState CharacterStates
        {
            get;
            set;
        }
 
-       public static WorldStats _stats
+       public  WorldStats _stats
        {
            get;
            set;
        }
 
+       public HandlerPacket HandlerPackets
+       {
+           get;
+           set;
+       }
        public Processor(AuthClient client)
         {
+           
             Clients = client;
-            PacketHandler = new Dictionary<string, Action<string>>();
-            this.Inits();
+            HandlerPackets = new HandlerPacket(this);
+            PacketHandler = new Dictionary<string, Action<string>>()
+            {
+              { "AV", Version },
+              { "AL", ListCharacters },
+              { "AP", GeneratePseudo },
+              { "AA", CreateCharacters },
+              { "AS", SendInfos },
+              { "GI", MapsInfos },
+              { "GA", StartRequest },
+              { "GK", FinishRequest },
+              { "eD", ChangeDirection },
+              { "BS", Smiley },
+              { "BM", Messages },
+              { "AB", BoostStats },
+              { "OM", MoveItems },
+              { "BD", Dates },
+              { "ER", BuysItems },
+              { "EB", ExchangeBuy },
+              { "EV", Cancel },
+              { "WV", ZaapCancel },
+              { "WU", ZaapUse },
+              { "Wu", ZaapiUse },
+              { "Wv", ZaapiCancel },
+              { "EA", Exchange },
+              { "EM", ExchangeMove },
+              { "EK", ExchangeAccept },
+              { "PI", PartyInvite },
+              { "PR", PartyRefuse },
+              { "PA", PartyAccepted },
+              { "Er", EnclosReceive },
+
+            };
    
         }
 
-       public void Inits()
-       {
-           var methods = from type in typeof(Processor).Assembly.GetTypes()
-                         from method in type.GetMethods()
-                         where method.GetCustomAttribute(typeof(PacketAttribute), false) != null
-                         select method;
-
-           foreach (var item in methods)
-           {
-               var attribute = item.GetCustomAttribute<PacketAttribute>();
-
-               Action<string> action = (Action<string>)Delegate.CreateDelegate(typeof(Action<string>), item);
-               PacketHandler.Add(attribute.PacketData, action);
-
-           }
-       }
 
        public void Parser(string packet)
         {
@@ -77,7 +104,7 @@ namespace yEmu.World.Core
 
             if (header == "AT")
             {
-                HandlerPacket.ReponseParse(packet.Substring(2));
+                HandlerPackets.ReponseParse(packet.Substring(2));
             }
 
             switch (_stats)
@@ -92,7 +119,7 @@ namespace yEmu.World.Core
 
                 case WorldStats.CreateGame:
                     if (header == "GC")
-                        HandlerPacket.GameInfos();
+                        HandlerPackets.GameInfos();
 
                     break;
 
@@ -106,172 +133,128 @@ namespace yEmu.World.Core
             }
         }
 
-
        [Packet("AV")]
-       public static void Version(string data)
+       public  void Version(string data)
         {
-            Processor.Clients.Send(string.Format("{0}{1}", "AV", "0"));
+            Clients.Send(string.Format("{0}{1}", "AV", "0"));
         }
 
        [Packet("AL")]
-       public static void ListCharacters(string data)
+       public  void ListCharacters(string data)
         {
-            lock (Processor.Lock)
+            cacheLock.EnterReadLock();
+
+            try
             {
-                var count = Character.characters.Count(x => x.accounts == Processor.Clients.Accounts.Id);
-                var personnages = Character.characters.Where(x => x.accounts == Processor.Clients.Accounts.Id).
+                var count = Character.characters.Count(x => x.accounts == Clients.Accounts.Id);
+                var personnages = Character.characters.Where(x => x.accounts == Clients.Accounts.Id).
                     Aggregate(string.Empty,
                             (current, x) =>
                                 current + x.InfosCharacter());
-                Processor.Clients.Send(string.Format("{0}{1}|{2}{3}", "ALK", "31536000000", count, personnages));
-            }
+                Clients.Send(string.Format("{0}{1}|{2}{3}", "ALK", "31536000000", count, personnages));
 
+            }
+            finally
+            {
+                cacheLock.ExitReadLock();
+            }
+               
         }
 
        [Packet("AP")]
-       public static void GeneratePseudo(string data)
+       public  void GeneratePseudo(string data)
         {
-            lock (Processor.Lock)
-            {
-                Processor.Clients.Send(string.Format("{0}{1}", "APK",
-                                Algorithme.GenerateRandomName()));
-            }
-            
+                Clients.Send(string.Format("{0}{1}", "APK",
+                                Algorithme.GenerateRandomName()));                        
        
         }
 
        [Packet("AA")]
-       public static void CreateCharacters(string data)
+       public  void CreateCharacters(string data)
        {
-           if (Character.characters.FindAll(x => x.accounts == Processor.Clients.Accounts.Id).Count >= int.Parse(Configuration.getString("PersonnagesComptes")))
-           {
-               Processor.Clients.Send("AAEf");
-               return;
-           }
-
-           var datas = data.Split('|');
-
-           var name = datas[0];
-
-           var classe = int.Parse(datas[1]);
-
-           var sex = int.Parse(datas[2]);
-
-           var color1 = int.Parse(datas[3]);
-
-           var color2 = int.Parse(datas[4]);
-
-           var color3 = int.Parse(datas[5]);
-
-           if (Character.characters.All(x => x.nom != name) && name.Length >= 3 && name.Length <= 20)
-           {
-               var reg = new Regex("^[a-zA-Z-]+$");
-
-               if (reg.IsMatch(name) && name.Count(c => c == '-') < 3)
-               {
-                   if (classe >= 1 && classe <= 12 && (sex == 1 || sex == 0))
-                   {
-                       var newCharacter = new Characters
-                       {
-                           id =
-                               Character.characters.Count > 0
-                                   ? Character.characters.OrderByDescending(x => x.id).First().id + 1
-                                   : 1,
-                           nom = name,
-                           Classes = (Class)classe,
-                           sexe = sex,
-                           color1 = color1,
-                           color2 = color2,
-                           color3 = color3,
-                           level = int.Parse(Configuration.getString("Start_level")),
-                           skin = int.Parse(classe + "" + sex),
-                           accounts = Processor.Clients.Accounts.Id,
-                           pdvNow =
-                               (int.Parse(Configuration.getString("Start_level")) - 1) * Characters.GainHpPerLvl + Characters.BaseHp,
-                           PdvMax =
-                               (int.Parse(Configuration.getString("Start_level")) - 1) * Characters.GainHpPerLvl + Characters.BaseHp,
-                       };
-
-                       newCharacter.GenerateInfos(Processor.Clients.Accounts.Level);
-
-                       Character.Create(newCharacter);
-
-                       Processor.Clients.Send("AAK");
-
-                       Processor.Clients.Send("TB");
-
-                       ListCharacters("");
-                   }
-                   else
-                   {
-                       Processor.Clients.Send("AAEf");
-                   }
-               }
-               else
-               {
-                   Processor.Clients.Send("AAEn");
-               }
-           }
-           else
-           {
-               Processor.Clients.Send("AAEa");
-           }
-
+           new CharacterHandler().Character(this, data);
        }
 
        [Packet("AS")]
-       public static void SendInfos(string data)
+       public  void SendInfos(string data)
        {
-           var character = Character.characters.Find(x => x.id == int.Parse(data));
+           cacheLock.EnterReadLock();
 
-           if (character == null)
+           try
            {
-               return;
+               var character = Character.characters.Find(x => x.id == int.Parse(data));
+
+               if (character == null)
+               {
+                   return;
+               }
+               character.Connected = true;
+               Clients.Character = character;
+
+               Clients.Send(string.Format("{0}|{1}", "ASK", character.SelectedCharacters()));
+               _stats = WorldStats.CreateGame;
            }
-
-           Processor.Clients.Character = character;
-
-           Processor.Clients.Send(string.Format("{0}|{1}", "ASK" , character.SelectedCharacters()));
-           _stats = WorldStats.CreateGame;
+           finally
+           {
+               cacheLock.ExitReadLock();
+           }
        }
 
        [Packet("GI")]
-       public static void MapsInfos(string data)
+       public  void MapsInfos(string data)
        {
-           Processor.Clients.Character.GetMap().Add(Processor.Clients.Character);
-           Processor.Clients.Character.GetMap().Send(string.Format("{0}{1}", "GM", Processor.Clients.Character.GetMap().DisplayChars()));
-           Processor.Clients.Send("GDK");
+           Clients.Character.GetMap().Add(Clients, Clients.Character);
+           Clients.Character.GetMap().Send(Clients,string.Format("{0}{1}", "GM", Clients.Character.GetMap().DisplayChars(Clients)));
+           Clients.Send("GDK");
 
        }
 
        [Packet("GA")]
-       public static void StartRequest(string data)
+       public void StartRequest(string data)
        {
+           Console.WriteLine((GameAction)int.Parse(data.Substring(0, 1)));
+
            switch ((GameAction)int.Parse(data.Substring(0, 1)))
            {
                case GameAction.MAP_MOVEMENT:
-                   HandlerPacket.CharacterMove(data);
+                   HandlerPackets.CharacterMove(data);
+                   break;
+               case GameAction.MAP_PUSHBACK:
+                   var result = data.Split(';')[1];
+
+                   if (result.Equals("114"))
+                   {
+                       new ZaapHandler().ZaapAction(this, data);
+                   }
+                   else if (result.Equals("157"))
+                   {
+                       new ZaapHandler().ZaapiAction(this, data);
+                   }
+                   else if (result.Equals("175"))
+                   {
+                       Clients.Send("ECK16|~");
+                   }
                    break;
            }
        }
 
        [Packet("GK")]
-       public static void FinishRequest(string data)
+       public void FinishRequest(string data)
        {
            switch (data.Substring(0, 1))
            {
                case "E":
-                   HandlerPacket.ChangeDestination(data);
+                   HandlerPackets.ChangeDestination(data);
                    break;
 
                case "K":
-                   HandlerPacket.CharacterEndMove();
+                   HandlerPackets.CharacterEndMove();
                    break;
            }
        }
 
        [Packet("eD")]
-       public static void ChangeDirection(string data)
+       public  void ChangeDirection(string data)
        {
            int direction;
 
@@ -285,11 +268,11 @@ namespace yEmu.World.Core
                Console.WriteLine("direction");
                return;
            }
-           Processor.Clients.Character.Maps.Send(string.Format("{0}{1}|{2}", "eD", Processor.Clients.Character.id, direction));
+           Clients.Character.Maps.Send(Clients,string.Format("{0}{1}|{2}", "eD", Clients.Character.id, direction));
        }
 
        [Packet("BS")]
-       public static void Smiley(string data)
+       public  void Smiley(string data)
        {
            int smiley;
 
@@ -302,38 +285,185 @@ namespace yEmu.World.Core
            {
                return;
            }
-           Processor.Clients.Character.Maps.Send(string.Format("{0}{1}|{2}","cS", Processor.Clients.Character.id, data));
+           Clients.Character.Maps.Send(Clients,string.Format("{0}{1}|{2}","cS", Clients.Character.id, data));
        }
 
        [Packet("BM")]
-       public static void Messages(string data)
+       public  void Messages(string data)
        {
            var infos = data.Split('|');
 
            var channel = infos[0];
            var message = infos[1];
 
-           switch (channel)
+           new ChannelHandler().Messages(this, channel, message);
+       }
+
+       [Packet("AB")]
+       public void BoostStats(string data)
+       {
+           var baseStats = int.Parse(data);
+           if (baseStats < 10 || baseStats > 15)
            {
-               case "*":
-                   HandlerPacket.GeneralMessages(message);
-                   return;
+               return;
 
-               case "?":
-                   HandlerPacket.RecrutementMessages(message);
+           }
+
+           Clients.Character.BoostStats((Characters.BaseStats)baseStats);
+           Clients.Send(string.Format("{0}{1}|{2}", "Ow", Clients.Character.GetCurrentWeight(), Clients.Character.GetMaxWeight()));
+           Clients.Send( Clients.Character.GetStats());
+
+
+       }
+
+       [Packet("OM")]
+       public void MoveItems(string data)
+       {
+
+           var itemId = int.Parse(data.Split('|')[0]);
+
+           var itemPosition = (Position)int.Parse(data.Split('|')[1]);
+
+           new ItemsHandler().MoveItems(this, itemId, itemPosition,data);
+
+       }
+
+       [Packet("BD")]
+       public void Dates(string data)
+       {
+           Clients.Send(string.Format("BD{0}|{1}|{2}", (DateTime.Now.Year - 1370).ToString(), (DateTime.Now.Month - 1), (DateTime.Now.Day)));
+       }
+
+       [Packet("ER")]
+       public void BuysItems(string data)
+       {
+           if (!data.Contains('|'))
+           {
+               Clients.Send("BN");
+               return;
+           }
+
+           var packet = data.Split('|');
+
+           if (packet.Length != 2)
+           {
+               Clients.Send("BN");
+               return;
+           }
+
+           var ID = 0;
+           var receiverID = 0;
+
+           if (!int.TryParse(packet[0], out ID) || !int.TryParse(packet[1], out receiverID))
+               return;
+
+           switch (ID)
+           {
+               case 0: // npc
+                   new NPCHandler().BuyNpc(this, receiverID);
                    break;
+               case 1:
+                   new ExchangeHandler().ExchangeStart(this, receiverID, ID);
 
-               case ":":
-                   HandlerPacket.TradeMessages(message);
-                   break;
-
-               default :
-                   if (channel.Length > 1)
-                   {
-                       HandlerPacket.PrivateMessages(channel, message);
-                   }
                    break;
            }
+       }
+
+       [Packet("EB")]
+       public void ExchangeBuy(string data)
+       {
+           var datas = data.Split('|');
+           var itemID = 0;
+           var quantity = 1;
+
+           if (!int.TryParse(datas[0], out itemID) || !int.TryParse(datas[1], out quantity))
+               return;
+
+           new NPCHandler().ExchangeBuy(this, itemID, quantity);
+        
+       }
+
+       [Packet("EV")]
+       public void Cancel(string data)
+       {
+           if (Clients.Character.Exchange == true)
+           {
+               ExchangeLeave(data);
+               return;
+           }
+           Clients.Send("EV");
+       }
+
+       [Packet("WV")]
+       public void ZaapCancel(string data)
+       {
+           Clients.Send("WV");
+       }
+
+       [Packet("WU")]
+       public void ZaapUse(string data)
+       {
+           new ZaapHandler().ZaapUse(this,data);
+       }
+
+       [Packet("Wu")]
+       public void ZaapiUse(string data)
+       {
+           new ZaapHandler().ZaapiUse(this, data);
+       }
+
+       [Packet("Wv")]
+       public void ZaapiCancel(string data)
+       {
+           Clients.Send("Wv");
+       }
+
+       [Packet("EA")]
+       public void Exchange(string data)
+       {
+           new ExchangeHandler().Exchange(this, data);
+       }
+
+       [Packet("EM")]
+       public void ExchangeMove(string data)
+       {
+           new ExchangeHandler().ExchangeMove(this, data);
+       }
+
+       [Packet("EK")]
+       public void ExchangeAccept(string data)
+       {
+           new ExchangeHandler().ExchangeAccept(this, data);
+       }
+
+       [Packet("EV")]
+       public void ExchangeLeave(string data)
+       {
+           new ExchangeHandler().ExchangeLeave(this, data);
+       }
+
+       [Packet("PI")]
+       public void PartyInvite(string data)
+       {
+           new PartyHandler().PartyInvite(this, data);
+       }
+
+       [Packet("PR")]
+       public void PartyRefuse(string data)
+       {
+           new PartyHandler().PartyRefuse(this, data);
+       }
+
+       [Packet("PA")]
+       public void PartyAccepted(string data)
+       {
+           new PartyHandler().PartyAccepted(this, data);
+       }
+
+       [Packet("Er")]
+       public void EnclosReceive(string data)
+       {
+
        }
     }
 }

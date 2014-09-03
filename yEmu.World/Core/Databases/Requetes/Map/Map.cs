@@ -11,24 +11,23 @@ using yEmu.Core.Reflection;
 
 namespace yEmu.World.Core.Databases.Requetes
 {
-   public class Map : Singleton<Map>
+    public class Map : Singleton<Map>
     {
-
+        public Object Lock = new Object();
         public static readonly List<Maps_data> Maps = new List<Maps_data>();
-
-
         public void Load()
         {
             using (IDbConnection connection = Databases.GetConnection())
             {
+                var results = connection.Query<Maps_data>("SELECT * FROM maps_data", buffered: false);
 
-                var results = connection.Query<Maps_data>("SELECT * FROM  maps_data" , buffered: false);
-
-                foreach (var result in results)
+                Parallel.ForEach(results, result =>
                 {
-                    result.Cells = result.UncompressDatas(); 
-                    Maps.Add(result);
-                }
+                    result.Cells = result.UncompressDatas();
+
+                    lock (Lock)
+                    Maps.Add(result);  
+                });
             }
             Info.Write("database", string.Format("{0} Maps chargés", Maps.Count()), ConsoleColor.Green);
         }

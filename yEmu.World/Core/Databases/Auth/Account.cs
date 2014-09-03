@@ -14,7 +14,7 @@ namespace yEmu.World.Core.Databases.Requetes
 {
     class Account : Singleton<Account>
     {
-
+        private object Lock = new object();
         public static ConcurrentList<Accounts> accounts = new ConcurrentList<Accounts>();
 
         public void Load()
@@ -25,6 +25,7 @@ namespace yEmu.World.Core.Databases.Requetes
 
                 foreach (var result in results)
                 {
+                    lock (Lock)
                     accounts.Add(result);
                 }
             }
