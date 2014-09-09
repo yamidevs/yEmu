@@ -66,7 +66,9 @@
     <Compile Include="Core\Classes\Maps\PathFinding.cs" />
     <Compile Include="Core\Classes\Maps\Triggers.cs" />
     <Compile Include="Core\Classes\Mount\MountParks.cs" />
+    <Compile Include="Core\Classes\Mount\Mounts.cs" />
     <Compile Include="Core\Classes\Npc\NPCQuestions.cs" />
+    <Compile Include="Core\Classes\Npc\NPCReponses.cs" />
     <Compile Include="Core\Classes\Npc\Npcs.cs" />
     <Compile Include="Core\Classes\Npc\NPCTemplates.cs" />
     <Compile Include="Core\Classes\Party.cs" />
@@ -84,9 +86,11 @@
     <Compile Include="Core\Databases\Auth\Servers.cs" />
     <Compile Include="Core\Databases\Requetes\Items\ItemsInfo.cs" />
     <Compile Include="Core\Databases\Requetes\Map\Map.cs" />
+    <Compile Include="Core\Databases\Requetes\Mount\Mount.cs" />
     <Compile Include="Core\Databases\Requetes\Mount\MountPark.cs" />
     <Compile Include="Core\Databases\Requetes\NPC\Npc.cs" />
     <Compile Include="Core\Databases\Requetes\NPC\NPCQuestion.cs" />
+    <Compile Include="Core\Databases\Requetes\NPC\NPCReponse.cs" />
     <Compile Include="Core\Databases\Requetes\NPC\NPCTemplate.cs" />
     <Compile Include="Core\Databases\Requetes\Character\Stats.cs" />
     <Compile Include="Core\Databases\Requetes\Map\Trigger.cs" />

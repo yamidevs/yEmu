@@ -23,6 +23,7 @@ namespace yEmu.World.Core.Databases.Requetes.NPC
 
                 foreach (var result in results)
                 {
+                    result.NPCQuestions = NPCQuestion.NPCQuestions.FirstOrDefault(x => x.ID == result.initQuestion);
 
                     NPCTemplates.Add(result);
                 }

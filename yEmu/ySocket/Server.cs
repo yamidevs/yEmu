@@ -108,6 +108,8 @@ namespace yEmu.Network
                 try
                 {
                    _ysocket.Bind(IPEndPoint);
+                   _ysocket.Listen(_listenMax);
+
                 }
                 catch
                 {
@@ -115,7 +117,6 @@ namespace yEmu.Network
                 //    Stop();
                 }
 
-                _ysocket.Listen(_listenMax);
 
                 StartAccept(null);
             

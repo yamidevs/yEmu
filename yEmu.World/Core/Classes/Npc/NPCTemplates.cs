@@ -19,9 +19,10 @@ namespace yEmu.World.Core.Classes.Npc
         public string accessories { get; set; }
         public int extraClip { get; set; }
         public int customArtWork { get; set; }
-        public int iniQuestion { get; set; }
+        public int initQuestion { get; set; }
         public string ventes { get; set; }
         public string exchange { get; set; }
+        public NPCQuestions NPCQuestions { get; set; }
 
         public NPCTemplates()
         {

@@ -47,8 +47,6 @@ namespace yEmu
 
                 Time.Stop();
 
-                GC.Collect();
-                GC.WaitForFullGCComplete();
 
                 Console.WriteLine("Time : {0} secondes", Time.Elapsed.TotalSeconds.ToString(CultureInfo.InvariantCulture).Substring(0, 4));
 

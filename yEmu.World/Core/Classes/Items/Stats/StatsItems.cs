@@ -13,7 +13,6 @@ namespace yEmu.World.Core.Classes.Items.Stats
     {
         public int MaxValue { get; set; }
         public string JetDecimal = "0d0+0";
-
        
         public override string ToString()
         {

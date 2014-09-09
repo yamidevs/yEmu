@@ -57,6 +57,8 @@ namespace yEmu.World.Core
            get;
            set;
        }
+
+
        public Processor(AuthClient client)
         {
            
@@ -92,6 +94,9 @@ namespace yEmu.World.Core
               { "PR", PartyRefuse },
               { "PA", PartyAccepted },
               { "Er", EnclosReceive },
+              { "DC", DialogueCreate },
+              { "DV", DialogueExit },
+              { "DR", DialogueReaplye },
 
             };
    
@@ -445,25 +450,50 @@ namespace yEmu.World.Core
        [Packet("PI")]
        public void PartyInvite(string data)
        {
-           new PartyHandler().PartyInvite(this, data);
+           PartyHandler PartyHandler = new PartyHandler();
+           PartyHandler.PartyInvite(this, data);
+           
        }
 
        [Packet("PR")]
        public void PartyRefuse(string data)
        {
-           new PartyHandler().PartyRefuse(this, data);
+           var PartyHandler = new PartyHandler();
+           PartyHandler.PartyRefuse(this, data);
        }
 
        [Packet("PA")]
        public void PartyAccepted(string data)
        {
-           new PartyHandler().PartyAccepted(this, data);
+           var PartyHandler = new PartyHandler();
+           PartyHandler.PartyAccepted(this, data);
        }
 
        [Packet("Er")]
        public void EnclosReceive(string data)
        {
+           MountHandler MountHandler = new MountHandler();
+           MountHandler.EnclosReceive(this, data);
+       }
 
+       [Packet("DC")]
+       public void DialogueCreate(string data)
+       {
+           var NPCHandler = new NPCHandler();
+           NPCHandler.DialogueCreate(this, data);
+       }
+
+       [Packet("DE")]
+       public void DialogueExit(string data)
+       {
+           Clients.Send("DV");
+           Clients.Character.Dialogue = -1;
+       }
+
+       public void DialogueReaplye(string data)
+       {
+           var NPCHandler = new NPCHandler();
+           NPCHandler.DialogueReaplye(this, data);
        }
     }
 }

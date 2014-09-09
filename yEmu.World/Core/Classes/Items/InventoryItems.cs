@@ -26,6 +26,7 @@ namespace yEmu.World.Core.Classes.Items
         public yEmu.World.Core.Classes.Characters.Characters IDCharacter { get; set; }
         public ItemsInfos IDItems { get; set; }
 
+        public int obvi { get; set; }
         private  static object cacheLock = new object();
 
         public InventoryItems()
@@ -44,7 +45,7 @@ namespace yEmu.World.Core.Classes.Items
         public string ItemInfo()
         {
 
-            if (Info.DeciToHex(IDItems.ID).Equals("2412"))
+            if (Info.DeciToHex(IDItems.ID).Equals("2412") || obvi == 1)
             {
                 var items =  InventoryItem.Inventory.Find(x => x.IDItems.ID == IDItems.ID);
 

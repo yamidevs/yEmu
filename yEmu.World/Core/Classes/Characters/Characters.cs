@@ -73,6 +73,7 @@ namespace yEmu.World.Core.Classes.Characters
         public int ReceiveParty { get; set; }
         public bool WaitParty { get; set; }
 
+        public int Dialogue { get; set; }
         #region proprieter
         public int Initiative
         {
@@ -269,12 +270,9 @@ namespace yEmu.World.Core.Classes.Characters
 
                 if (inventoryItems.Any(x => x.position == Position.Coiffe))
                 {
-
-
-                    if(inventoryItems.Find(x => x.position == Position.Coiffe).IDItems.ID == 9234)
+                    if(inventoryItems.Find(x => x.position == Position.Coiffe).obvi == 1)
                     {
-                        items.Append(Info.DeciToHex(inventoryItems.Find(x => x.position == Position.Coiffe).IDItems.ID) + "~" + "16~1a3f");
-
+                      items.Append(2412 + "~" + "16~1");
                     }
                     else
                     {

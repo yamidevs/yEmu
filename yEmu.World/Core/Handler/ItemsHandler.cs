@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using yEmu.Util;
 using yEmu.World.Core.Classes.Items;
 using yEmu.World.Core.Databases.Requetes;
 using yEmu.World.Core.Enums;
@@ -99,7 +100,40 @@ namespace yEmu.World.Core.Handler
 
                     if (existItem != null)
                     {
-                        Processor.Clients.Send("BN");
+                        var obvi = InventoryItem.Inventory.Find(x => x.id == itemId);
+                        if ((obvi.IDItems.ID == 9234))
+                        {
+                            existItem.obvi = 1;
+                            // 3cb : etat de l'obji , 3cc niveau de l'obji
+
+                            var Effect = new StringBuilder();
+                            Effect.Append(existItem.stats).Append(",");
+                            Effect.Append("3ca#0#0#");
+                            Effect.Append(Info.DeciToHex(obvi.IDItems.ID)).Append(",");
+                            Effect.Append("3cb#0#0#");
+                            //todo : etat de l'obji
+                            Effect.Append("18").Append(",");
+                            Effect.Append("3cc#0#0#");
+                            //NIVEAU OBJI
+                            Effect.Append("1").Append(",");
+                            Effect.Append("3cd#0#0#10,3ce#0#0#3e7");
+                            existItem.stats = Effect.ToString();
+
+                            Effect.Clear();
+
+                            if (obvi.quantity > 1)
+                            {
+                                obvi.quantity -= 1;
+                                Processor.Clients.Send(string.Format("{0}{1}|{2}", "OQ", obvi.id,
+                                obvi.quantity));
+                            }
+                            obvi.quantity = 0;
+                            Processor.Clients.Send(string.Concat("OR",obvi.id));
+                            Processor.Clients.Send(string.Concat("OC;", existItem.ItemInfo()));
+                            Processor.Clients.Character.Maps.Send(Processor.Clients, string.Format("{0}{1}|{2}", "Oa", Processor.Clients.Character.id,
+                            Processor.Clients.Character.GetItems()));
+                        }
+
                         return;
                     }
 
@@ -115,7 +149,7 @@ namespace yEmu.World.Core.Handler
 
                         // InventoryItemRepository.Update(item);
 
-                        Processor.Clients.Send(string.Format("{0}{1}|{2}", "ObjectMove", item.id, (int)itemPosition));
+                        Processor.Clients.Send(string.Format("{0}{1}|{2}", "OM", item.id, (int)itemPosition));
 
                         Processor.Clients.Send(string.Format("{0}{1}", "OAKO", newItem.ItemInfo()));
                     }

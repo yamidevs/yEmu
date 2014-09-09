@@ -20,6 +20,7 @@ namespace yEmu.World
 {
     class Program
     {
+
         static void Main(string[] args)
         {
             Console.Title = "yEmu World";
@@ -27,9 +28,9 @@ namespace yEmu.World
             Stopwatch Time = new Stopwatch();
             Time.Start();
             Info.Start();
+
             Configuration.LoadConfiguration();
 
-            
                 Servers.Instance.Load();
                 Account.Instance.Load();
                 Map.Instance.Load();
@@ -41,11 +42,14 @@ namespace yEmu.World
                 ItemsInfo.Instance.Load();
                 ItemSet.Instance.Load();
                 InventoryItem.Instance.Load();
+                NPCReponse.Instance.Load();
+                NPCQuestion.Instance.Load();
                 NPCTemplate.Instance.Load();
                 Npc.Instance.Load();
                 Zaap.Instance.Load();
                 Zaapi.Instance.Load();
                 MountPark.Instance.Load();
+                Mount.Instance.Load();
 
             IPAddress Ip = IPAddress.Parse(Configuration.getString("Game_Ip"));
 
@@ -63,8 +67,7 @@ namespace yEmu.World
 
             Time.Stop();
     
-            GC.Collect();
-            GC.WaitForFullGCComplete();
+ 
 
             Console.WriteLine("Time : {0} secondes", Time.Elapsed.TotalSeconds.ToString(CultureInfo.InvariantCulture).Substring(0, 4));
 

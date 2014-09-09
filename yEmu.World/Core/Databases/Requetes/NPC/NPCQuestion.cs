@@ -19,10 +19,31 @@ namespace yEmu.World.Core.Databases.Requetes.NPC
         {
             using (IDbConnection connection = Databases.GetConnection())
             {
-                var results = connection.Query<NPCQuestions>("SELECT * FROM npcs_questions");
+                var results = connection.Query<NPCQuestions>("SELECT * FROM npc_questions");
 
                 foreach (var result in results)
                 {
+                    if (result.responses.Contains(';'))
+                    {
+                        var split = result.responses.Split(';');
+
+                        foreach (var reponse in split)
+                        {
+             
+                                result.Reponse.Add(NPCReponse.NPCReponses.FirstOrDefault(x => x.ID == int.Parse(reponse)));                            
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            result.Reponse.Add(NPCReponse.NPCReponses.FirstOrDefault(x => x.ID == int.Parse(result.responses)));
+                        }
+                        catch
+                        {
+                        }
+
+                    }
 
                     NPCQuestions.Add(result);
                 }
